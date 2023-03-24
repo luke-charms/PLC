@@ -1,5 +1,7 @@
 -- Author: Julian Rathke, 2018
 -- Provides a CEK implementation of the \Toy language from the lecture notes
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant bracket" #-}
 module TileEval where
 import TileGrammar
 
@@ -19,12 +21,13 @@ import TileGrammar
 --            | TmApp Expr Expr 
 --            | Cl String TileType Expr Environment
 
-data Frame = HReflect Expr Environment 
-           | ReflectH Expr
+data Frame = HReflect Expr Environment | ReflectH Expr
            | HRotate Expr Environment | RotateH Expr
            | HScale Expr Environment | ScaleH Expr
-           | HSubtile Expr Expr Environment 
+           | HSubtile Expr Expr Environment
            | HAnd Expr Environment | AndH Expr
+           | HOr Expr Environment | OrH Expr
+           | NotH
            | HLet String TileType Expr Environment
            | HApp Expr Environment | AppH Expr
 type Kontinuation = [ Frame ]
@@ -32,7 +35,7 @@ type State = (Expr,Environment,Kontinuation)
 
 -- Function to unpack a closure to extract the underlying lambda term and environment
 unpack :: Expr -> (Expr,Environment)
-unpack (Cl x t e env1) = ((TmLambda x t e) , env1)
+unpack (Cl x t e env1) = (TmLambda x t e , env1)
 unpack e = (e,[])
 
 -- Look up a value in an environment and unpack it
@@ -47,47 +50,27 @@ update env x e = (x,e) : env
 -- Checks for terminated expressions
 isValue :: Expr -> Bool
 isValue (TmInt _) = True
-isValue TmTrue = True
-isValue TmFalse = True
-isValue TmUnit = True
-isValue (TmPair e1 e2) = isValue e1 && isValue e2
-isValue (Cl _ _ _ _) = True
+isValue TmX = True
+isValue TmY = True
+isValue (TmTile _ _) = True
+isValue (TmBlank _) = True
+isValue (Cl {}) = True
 isValue _ = False
 
 --Small step evaluation function
 eval1 :: State -> State
-eval1 ((TmVar x),env,k) = (e',env',k) 
+eval1 (TmVar x,env,k) = (e',env',k)
                     where (e',env') = getValueBinding x env
-                  
+
 -- Rule for terminated evaluations
 eval1 (v,env,[]) | isValue v = (v,env,[])
 
--- Evaluation rules for less than operator
-eval1 ((TmCompare e1 e2),env,k) = (e1,env,(HCompare e2 env):k)
-eval1 ((TmInt n),env1,(HCompare e env2):k) = (e,env2,(CompareH (TmInt n)) : k)
-eval1 ((TmInt m),env,(CompareH (TmInt n)):k) | n < m = (TmTrue,[],k)
-                                             | otherwise = (TmFalse,[],k)
-
--- Evaluation rules for plus operator
-eval1 ((TmAdd e1 e2),env,k) = (e1,env,(HAdd e2 env):k)
-eval1 ((TmInt n),env1,(HAdd e env2):k) = (e,env2,(AddH (TmInt n)) : k)
-eval1 ((TmInt m),env,(AddH (TmInt n)):k) = (TmInt (n + m),[],k)
-
--- Evaluation rules for projections
-eval1 ((TmFst e1),env,k) = (e1,env, FstH : k)
-eval1 ((TmSnd e1),env,k) = (e1,env, SndH : k)
-eval1 ((TmPair v w),env, FstH:k) | isValue v && isValue w = ( v , [] , k)
-eval1 ((TmPair v w),env, SndH:k) | isValue v && isValue w = ( w , [] , k)
-
--- Evaluation rules for pairs
-eval1 ((TmPair e1 e2),env,k) = (e1,env,(HPair e2 env):k)
-eval1 (v,env1,(HPair e env2):k) | isValue v = (e,env2,(PairH v) : k)
-eval1 (w,env,(PairH v):k) | isValue w = ( (TmPair v w),[],k)
-
--- Evaluation rules for if-then-else
-eval1 ((TmIf e1 e2 e3),env,k) = (e1,env,(HIf e2 e3 env):k)
-eval1 (TmTrue,env1,(HIf e2 e3 env2):k) = (e2,env2,k)
-eval1 (TmFalse,env1,(HIf e2 e3 env2):k) = (e3,env2,k)
+-- Evaluation rules for reflect operator
+eval1 ((TmReflect e1 e2),env,k) = (e1,env,(HReflect e2 env):k)
+eval1 ((TmX),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmX)) : k)
+eval1 ((TmY),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmY)) : k)
+eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (reflectX tile),[],k)
+eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (reflectY tile),[],k)
 
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
@@ -105,17 +88,30 @@ eval1 (v,env1,(AppH (Cl x typ e env2) ) : k )  = (e, update env2 x v, k)
 eval1 (e,env,k) = error "Evaluation Error"
 
 -- Function to iterate the small step reduction to termination
-evalLoop :: Expr -> Expr 
+evalLoop :: Expr -> Expr
 evalLoop e = evalLoop' (e,[],[])
   where evalLoop' (e,env,k) = if (e' == e) && (isValue e') && (null k) then e' else evalLoop' (e',env',k')
-                       where (e',env',k') = eval1 (e,env,k) 
+                       where (e',env',k') = eval1 (e,env,k)
 
 -- Function to unparse underlying values from the AST term
-unparse :: Expr -> String 
-unparse (TmInt n) = show n
-unparse (TmTrue) = "true"
-unparse (TmFalse) = "false"
-unparse (TmUnit) = "()"
-unparse (TmPair e1 e2) = "( " ++ (unparse e1) ++ " , " ++ (unparse e2) ++ " )"
-unparse (Cl _ _ _ _) = "Function Value"
+unparse :: Expr -> String
+unparse (TmInt n)   = show n
+unparse TmX         = "X Axis"
+unparse TmY         = "Y Axis"
+unparse (TmTile n tile) = showTile (read $ unparse n) (read $ unparse n) "" (unparse tile)
+unparse (Cl {}) = "Function Value"
 unparse _ = "Unknown"
+
+showTile :: Int -> Int -> String -> String -> String
+showTile 0 n tile _             = tile
+showTile n 0 tile tileLoop      = showTile (n-1) n (tile ++ "\n") tileLoop
+showTile n nn tile (t:ileLoop)  = showTile n (nn-1) (tile ++ [t]) ileLoop
+
+reflectX :: Expr -> Expr
+reflectX tile = tile
+
+reflectY :: Expr -> Expr
+reflectY tile = tile
+
+tileA :: Expr
+tileA = (TmTile (TmInt 2) (TmInt 1001))

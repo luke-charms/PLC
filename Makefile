@@ -7,7 +7,7 @@
 #   
 
 # Files that need to be generated from other files
-DEPEND += TileTokens.hs TileGrammar.hs TileTypes.hs
+DEPEND += TileTokens.hs TileGrammar.hs TileTypes.hs TileEval.hs
 
 # When "make" is invoked with no arguments, we build an executable 
 #  after building everything that it depends on

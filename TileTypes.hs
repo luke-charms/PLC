@@ -60,6 +60,10 @@ typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) =
 
 typeOf tenv (TmVar x) = getBinding x tenv
 
+typeOf tenv (TmLambda x t e) = TyFun t u 
+  where u = typeOf (addBinding x t tenv) e
+
+
 typeOf tenv (TmApp e1 e2) | t1 == t3 = t2
   where ((t1,t2),t3) = (checkFun (typeOf tenv e1), typeOf tenv e2)
         checkFun (TyFun t1 t2) = (t1,t2)

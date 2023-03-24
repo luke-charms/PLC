@@ -25,6 +25,7 @@ import TileTokens
     OR          { TokenOr _ }
     subtile     { TokenSubtile _ }
 
+    lam         { TokenLambda _ }
     let         { TokenLet _ }
     ':'         { TokenHasType _ }
     '='         { TokenEq _ }
@@ -45,6 +46,7 @@ import TileTokens
 %left reflect rotate scale subtile
 %left ','
 %nonassoc x y int var '(' ')'
+%left lam
 %left APP
 
 
@@ -63,6 +65,7 @@ Exp : x                                         { TmX }
     | OR Exp Exp                                { TmOr $2 $3 }
     | subtile '(' Exp ',' Exp ')' Exp           { TmSubtile $3 $5 $7 }
 
+    | lam '(' var ':' Type ')' Exp              { TmLambda $3 $5 $7 }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
     | Exp Exp %prec APP                         { TmApp $1 $2 } 
     | '(' Exp ')'                               { $2 }
@@ -93,7 +96,7 @@ data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr
             | TmSubtile Expr Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
             | TmVar String | TmLet String TileType Expr Expr
-            | TmApp Expr Expr 
+            | TmLambda String TileType Expr | TmApp Expr Expr 
             | Cl String TileType Expr Environment
     deriving (Show,Eq)
 }

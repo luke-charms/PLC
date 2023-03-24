@@ -38,6 +38,7 @@ tokens :-
   =              { tok (\p s -> TokenEq p )}
   in             { tok (\p s -> TokenIn p )}
 
+  \\             { tok (\p s -> TokenLambda p) }
   \(             { tok (\p s -> TokenLParen p) }
   \)             { tok (\p s -> TokenRParen p) }
   $alpha [$alpha $digit \_ \’]*   { tok (\p s -> TokenVar p s) } 
@@ -70,6 +71,7 @@ data TileToken =
   TokenInt AlexPosn Int          | 
   TokenTrue AlexPosn             |
 
+  TokenLambda AlexPosn           |
   TokenHasType AlexPosn          |
   TokenLet AlexPosn              |
   TokenEq AlexPosn               |
@@ -101,6 +103,7 @@ tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenInt  (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
 
+tokenPosn (TokenLambda (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenHasType (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLet (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenEq  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

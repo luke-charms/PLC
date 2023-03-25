@@ -15,6 +15,7 @@ tokens :-
   Axis           { tok (\p s -> TokenTypeAxis p) }
   "->"           { tok (\p s -> TokenTypeArr p) }
   \,             { tok (\p s -> TokenComma p) }
+  \.             { tok (\p s -> TokenDot p) }
   $digit+        { tok (\p s -> TokenInt p (read s)) }
   x              { tok (\p s -> TokenXAxis p) }
   y              { tok (\p s -> TokenYAxis p) }
@@ -33,6 +34,7 @@ tokens :-
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
   Blank          { tok (\p s -> TokenTypeBlank p) }
+  Cell           { tok (\p s -> TokenTypeCell p) }
 
   \:             { tok (\p s -> TokenHasType p) }
   let            { tok (\p s -> TokenLet p ) }
@@ -42,6 +44,8 @@ tokens :-
   \\             { tok (\p s -> TokenLambda p) }
   \(             { tok (\p s -> TokenLParen p) }
   \)             { tok (\p s -> TokenRParen p) }
+  \[             { tok (\p s -> TokenLSquBracket p) }
+  \]             { tok (\p s -> TokenRSquBracket p) }
   $alpha [$alpha $digit \_ \’]*   { tok (\p s -> TokenVar p s) } 
 
 { 
@@ -71,7 +75,7 @@ data TileToken =
   TokenTypeTile AlexPosn         |
   TokenTypeBlank AlexPosn        |
   TokenInt AlexPosn Int          | 
-  TokenTrue AlexPosn             |
+  TokenTypeCell AlexPosn         |
 
   TokenLambda AlexPosn           |
   TokenHasType AlexPosn          |
@@ -80,7 +84,10 @@ data TileToken =
   TokenIn AlexPosn               |
   TokenLParen AlexPosn           |
   TokenRParen AlexPosn           |
-  TokenComma AlexPosn            | 
+  TokenLSquBracket AlexPosn      |
+  TokenRSquBracket AlexPosn      |
+  TokenComma AlexPosn            |
+  TokenDot AlexPosn              |
   TokenVar AlexPosn String
   deriving (Eq,Show) 
 
@@ -105,6 +112,7 @@ tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenInt  (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenTypeCell (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenLambda (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenHasType (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -113,7 +121,10 @@ tokenPosn (TokenEq  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenIn  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenComma (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenDot (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenVar (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
 
 }

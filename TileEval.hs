@@ -2,8 +2,11 @@
 -- Provides a CEK implementation of the \Toy language from the lecture notes
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
+{-# HLINT ignore "Use join" #-}
 module TileEval where
 import TileGrammar
+import Data.Char
+
 
 --Data structures as defined in ToyGrammar:
 
@@ -69,8 +72,8 @@ eval1 (v,env,[]) | isValue v = (v,env,[])
 eval1 ((TmReflect e1 e2),env,k) = (e1,env,(HReflect e2 env):k)
 eval1 ((TmX),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmX)) : k)
 eval1 ((TmY),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmY)) : k)
-eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (reflectX tile),[],k)
-eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (reflectY tile),[],k)
+eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (parseTile (reflectTileX (unparse n) (unparse tile))),[],k)
+eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (parseTile (reflectTileY (unparse n) (unparse tile))),[],k)
 
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
@@ -102,13 +105,31 @@ unparse (TmTile n tile) = showTile (read $ unparse n) (read $ unparse n) "" (unp
 unparse (Cl {}) = "Function Value"
 unparse _ = "Unknown"
 
+parseTile :: String -> Expr
+parseTile tile = (TmInt (read tile))
+
+
+unparseTile :: Expr -> Int
+unparseTile (TmInt n) = n
+
+parseTile' :: Int -> Expr
+parseTile' n = (TmInt n)
+
 showTile :: Int -> Int -> String -> String -> String
 showTile 0 n tile _             = tile
 showTile n 0 tile tileLoop      = showTile (n-1) n (tile ++ "\n") tileLoop
 showTile n nn tile (t:ileLoop)  = showTile n (nn-1) (tile ++ [t]) ileLoop
 
-reflectX :: Expr -> Expr
-reflectX tile = tile
+packageTile :: Int -> Int -> [[Int]]
+packageTile x n = map (map digitToInt) (chunksOf n (show x))
 
-reflectY :: Expr -> Expr
-reflectY tile = tile
+
+reflectTileX :: String -> String -> String
+reflectTileX n tile = reverse (chunksOf (read n) tile) >>= id
+
+reflectTileY :: String -> String -> String
+reflectTileY n tile = concatMap reverse (chunksOf (read n) tile)
+
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n xs = take n xs : chunksOf n (drop n xs)

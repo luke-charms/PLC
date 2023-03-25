@@ -11,6 +11,7 @@ import TileTokens
     Int         { TokenTypeInt _ } 
     Tile        { TokenTypeTile _ }
     Blank       { TokenTypeBlank _ }
+    Cell        { TokenTypeCell _ }
 
     arr         { TokenTypeArr _ } 
     x           { TokenXAxis _ }
@@ -33,7 +34,10 @@ import TileTokens
     in          { TokenIn _ }
     '('         { TokenLParen _ } 
     ')'         { TokenRParen _ } 
+    '['         { TokenLSquBracket _ } 
+    ']'         { TokenRSquBracket _ } 
     ','         { TokenComma _ }
+    '.'         { TokenDot _ }
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
 
@@ -46,7 +50,7 @@ import TileTokens
 %left AND NOT OR
 %left reflect rotate scale subtile combine
 %left ','
-%nonassoc x y int var '(' ')'
+%nonassoc x y int var '(' ')' '[' ']' '.'
 %left lam
 %left APP
 
@@ -71,14 +75,16 @@ Exp : x                                         { TmX }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
     | Exp Exp %prec APP                         { TmApp $1 $2 } 
     | '(' Exp ')'                               { $2 }
-
+    | '[' Exp ']'                               { TmCell $2 }
+    | Exp ',' Exp                               { TmComma $1 $3 }
 
 
 Type : Axis                     { TyAxis }
      | Int                      { TyInt }
      | Tile                     { TyTile }
      | Blank                    { TyBlank }
-     | Type arr Type            { TyFun $1 $3 } 
+     | Type arr Type            { TyFun $1 $3 }
+     | Cell                     { TyCell }
 
 
 { 
@@ -86,12 +92,12 @@ parseError :: [TileToken] -> a
 parseError [] = error "Unknown Parse Error" 
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
-data TileType = TyInt | TyAxis | TyTile | TyBlank | TyFun TileType TileType
+data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
 
-data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr
+data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
             | TmReflect Expr Expr 
             | TmRotate Expr Expr
             | TmScale Expr Expr

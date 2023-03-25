@@ -2,15 +2,16 @@
 --Provides an implementation of a type checker for the \Toy language from the lecture notes.
 module TileTypes where
 import TileGrammar
-import Language.Haskell.TH.Ppr (TypeArg(TyArg))
+
+
 
 --Data structures as defined in ToyGrammar:
 
---data TileType = TyInt | TyAxis | TyTile | TyBlank | TyFun TileType TileType
+--data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
 
 --type Environment = [ (String,Expr) ]
 
---data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr
+--data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
@@ -40,7 +41,11 @@ typeOf tenv TmX = TyAxis
 
 typeOf tenv TmY = TyAxis
 
-typeOf tenv (TmTile e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2)  = TyTile
+typeOf tenv (TmCell e1) | TyInt == typeOf tenv e1 = TyCell
+
+typeOf tenv (TmComma e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt
+
+typeOf tenv (TmTile e1 e2) | (TyInt,TyCell) == (typeOf tenv e1, typeOf tenv e2)  = TyTile
 
 typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1  = TyBlank
 
@@ -81,4 +86,5 @@ unparseType TyInt = "Int"
 unparseType TyAxis = "Axis"
 unparseType TyTile = "Tile"
 unparseType TyBlank = "Blank Tile"
+unparseType TyCell = "Cell"
 unparseType (TyFun t1 t2) = unparseType t1 ++ " -> " ++ unparseType t2

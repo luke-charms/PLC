@@ -112,6 +112,3 @@ reflectX tile = tile
 
 reflectY :: Expr -> Expr
 reflectY tile = tile
-
-tileA :: Expr
-tileA = (TmTile (TmInt 2) (TmInt 1001))

@@ -24,6 +24,7 @@ import TileTokens
     NOT         { TokenNot _ }
     OR          { TokenOr _ }
     subtile     { TokenSubtile _ }
+    combine     { TokenCombine _ }
 
     lam         { TokenLambda _ }
     let         { TokenLet _ }
@@ -43,7 +44,7 @@ import TileTokens
 %right in
 %left tile blank
 %left AND NOT OR
-%left reflect rotate scale subtile
+%left reflect rotate scale subtile combine
 %left ','
 %nonassoc x y int var '(' ')'
 %left lam
@@ -64,6 +65,7 @@ Exp : x                                         { TmX }
     | NOT Exp                                   { TmNot $2 }
     | OR Exp Exp                                { TmOr $2 $3 }
     | subtile '(' Exp ',' Exp ')' Exp           { TmSubtile $3 $5 $7 }
+    | combine Exp Exp                           { TmCombine $2 $3 }
 
     | lam '(' var ':' Type ')' Exp              { TmLambda $3 $5 $7 }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
@@ -94,6 +96,7 @@ data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr
             | TmRotate Expr Expr
             | TmScale Expr Expr
             | TmSubtile Expr Expr Expr
+            | TmCombine Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
             | TmVar String | TmLet String TileType Expr Expr
             | TmLambda String TileType Expr | TmApp Expr Expr 

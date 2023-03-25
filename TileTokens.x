@@ -23,20 +23,21 @@ tokens :-
 
   reflect        { tok (\p s -> TokenReflect p) }
   rotate         { tok (\p s -> TokenRotate p) }
-  scale          { tok (\p s -> TokenScale p)}
-  NOT            { tok (\p s -> TokenNot p)}
-  AND            { tok (\p s -> TokenAnd p)}
-  OR             { tok (\p s -> TokenOr p)}
-  subtile        { tok (\p s -> TokenSubtile p)}
+  scale          { tok (\p s -> TokenScale p) }
+  NOT            { tok (\p s -> TokenNot p) }
+  AND            { tok (\p s -> TokenAnd p) }
+  OR             { tok (\p s -> TokenOr p) }
+  subtile        { tok (\p s -> TokenSubtile p) }
+  combine        { tok (\p s -> TokenCombine p) }
 
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
   Blank          { tok (\p s -> TokenTypeBlank p) }
 
   \:             { tok (\p s -> TokenHasType p) }
-  let            { tok (\p s -> TokenLet p )}
-  =              { tok (\p s -> TokenEq p )}
-  in             { tok (\p s -> TokenIn p )}
+  let            { tok (\p s -> TokenLet p ) }
+  =              { tok (\p s -> TokenEq p ) }
+  in             { tok (\p s -> TokenIn p ) }
 
   \\             { tok (\p s -> TokenLambda p) }
   \(             { tok (\p s -> TokenLParen p) }
@@ -64,6 +65,7 @@ data TileToken =
   TokenNot AlexPosn              |
   TokenOr AlexPosn               |
   TokenSubtile AlexPosn          |
+  TokenCombine AlexPosn          |
 
   TokenTypeInt  AlexPosn         | 
   TokenTypeTile AlexPosn         |
@@ -97,6 +99,7 @@ tokenPosn (TokenAnd (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenNot (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenOr (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenSubtile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenCombine (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

@@ -52,6 +52,8 @@ typeOf tenv (TmScale e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2)
 
 typeOf tenv (TmSubtile e1 e2 e3) | (TyInt,TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3) = TyTile
 
+typeOf tenv (TmCombine e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
+
 typeOf tenv (TmAnd e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
 typeOf tenv (TmNot e1) | TyTile == typeOf tenv e1 = TyTile
@@ -62,7 +64,6 @@ typeOf tenv (TmVar x) = getBinding x tenv
 
 typeOf tenv (TmLambda x t e) = TyFun t u 
   where u = typeOf (addBinding x t tenv) e
-
 
 typeOf tenv (TmApp e1 e2) | t1 == t3 = t2
   where ((t1,t2),t3) = (checkFun (typeOf tenv e1), typeOf tenv e2)

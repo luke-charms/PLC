@@ -7,11 +7,11 @@ import TileGrammar
 
 --Data structures as defined in ToyGrammar:
 
---data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
+--data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType
 
 --type Environment = [ (String,Expr) ]
 
---data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr
+--  data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmBigCell Expr | TmComma Expr Expr
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
@@ -41,11 +41,14 @@ typeOf tenv TmX = TyAxis
 
 typeOf tenv TmY = TyAxis
 
-typeOf tenv (TmCell e1) | TyInt == typeOf tenv e1 = TyCell
+typeOf tenv (TmCell e1) = TyCell t1
+   where t1 = typeOf tenv e1
 
-typeOf tenv (TmComma e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt
+typeOf tenv (TmComma e1 e2) = TyComma t1 t2
+   where (t1,t2) = (typeOf tenv e1, typeOf tenv e2)
 
-typeOf tenv (TmTile e1 e2) | (TyInt,TyCell) == (typeOf tenv e1, typeOf tenv e2)  = TyTile
+typeOf tenv (TmTile e1 (TmCell e2)) | (TyInt,TyCell t1) == (typeOf tenv e1,typeOf tenv (TmCell e2)) = TyTile
+   where t1 = typeOf tenv e2
 
 typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1  = TyBlank
 
@@ -67,7 +70,7 @@ typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) =
 
 typeOf tenv (TmVar x) = getBinding x tenv
 
-typeOf tenv (TmLambda x t e) = TyFun t u 
+typeOf tenv (TmLambda x t e) = TyFun t u
   where u = typeOf (addBinding x t tenv) e
 
 typeOf tenv (TmApp e1 e2) | t1 == t3 = t2
@@ -86,5 +89,7 @@ unparseType TyInt = "Int"
 unparseType TyAxis = "Axis"
 unparseType TyTile = "Tile"
 unparseType TyBlank = "Blank Tile"
-unparseType TyCell = "Cell"
+unparseType (TyCell t1) = "Cell: [" ++ unparseType t1 ++ "]"
 unparseType (TyFun t1 t2) = unparseType t1 ++ " -> " ++ unparseType t2
+unparseType (TyComma t1 t2) = unparseType t1 ++ "," ++ unparseType t2
+

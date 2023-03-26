@@ -37,7 +37,6 @@ import TileTokens
     '['         { TokenLSquBracket _ } 
     ']'         { TokenRSquBracket _ } 
     ','         { TokenComma _ }
-    '.'         { TokenDot _ }
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
 
@@ -46,6 +45,7 @@ import TileTokens
 %left arr
 %right let
 %right in
+%right Cell
 %left tile blank
 %left AND NOT OR
 %left reflect rotate scale subtile combine
@@ -75,6 +75,7 @@ Exp : x                                         { TmX }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
     | Exp Exp %prec APP                         { TmApp $1 $2 } 
     | '(' Exp ')'                               { $2 }
+    | '[' '[' Exp ']' ']'                       { TmBigCell $3 }
     | '[' Exp ']'                               { TmCell $2 }
     | Exp ',' Exp                               { TmComma $1 $3 }
 
@@ -84,7 +85,8 @@ Type : Axis                     { TyAxis }
      | Tile                     { TyTile }
      | Blank                    { TyBlank }
      | Type arr Type            { TyFun $1 $3 }
-     | Cell                     { TyCell }
+     | Cell Type                { TyCell $2 }
+     | Type ',' Type            { TyComma $1 $3 }
 
 
 { 
@@ -92,12 +94,12 @@ parseError :: [TileToken] -> a
 parseError [] = error "Unknown Parse Error" 
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
-data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
+data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell TileType | TyBigCell | TyFun TileType TileType | TyComma TileType TileType
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
 
-data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
+data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmBigCell Expr | TmComma Expr Expr
             | TmReflect Expr Expr 
             | TmRotate Expr Expr
             | TmScale Expr Expr

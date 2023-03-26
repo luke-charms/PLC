@@ -226,7 +226,8 @@ scaleInt x n = TmInt (x * (tmInttoInt n))
 --         AND, NOT, OR            --
 -------------------------------------
 
-
+andTile :: Expr -> Expr
+andTile expr = undefined
 
 --------------------------------
 --         SUBTILE            --

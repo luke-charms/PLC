@@ -4,6 +4,7 @@
 {-# HLINT ignore "Redundant bracket" #-}
 {-# HLINT ignore "Use join" #-}
 {-# HLINT ignore "Use map once" #-}
+{-# HLINT ignore "Eta reduce" #-}
 module TileEval where
 import TileGrammar
 import Data.Char
@@ -104,17 +105,21 @@ unparse (TmInt n)   = show n
 unparse TmX         = "X Axis"
 unparse TmY         = "Y Axis"
 unparse (TmTile (TmInt n) tile) = showTile n tile
+unparse (TmBlank (TmInt n)) = showBlankTile n
 unparse (Cl {}) = "Function Value"
 unparse _ = "Unknown"
 
 tmInttoInt :: Expr -> Int
 tmInttoInt (TmInt n) = n
 
-displayTile :: [[Int]] -> String
-displayTile matrix = unlines $ map unwords $ map (map show) matrix
-
 showTile :: Int -> Expr -> String
 showTile n tile = displayTile $ makeTile n (tileExprToInt tile)
+
+showBlankTile :: Int -> String
+showBlankTile n = displayTile $ makeBlankTile n
+
+displayTile :: [[Int]] -> String
+displayTile matrix = unlines $ map unwords $ map (map show) matrix
 
 ----------------------------------
 
@@ -127,6 +132,9 @@ makeTile :: Int -> [[Int]] -> [[Int]]
 makeTile n xs = chunk n $ concat xs
   where chunk _ [] = []
         chunk m ys = take m ys : chunk m (drop m ys)
+
+makeBlankTile :: Int -> [[Int]]
+makeBlankTile n = replicate n (replicate n 0)
 
 unparseTile :: Expr -> Expr -> [[Int]]
 unparseTile n tile = makeTile (read $ unparse n) (tileExprToInt tile)

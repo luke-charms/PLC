@@ -3,6 +3,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
 {-# HLINT ignore "Use join" #-}
+{-# HLINT ignore "Use map once" #-}
 module TileEval where
 import TileGrammar
 import Data.Char
@@ -10,11 +11,11 @@ import Data.Char
 
 --Data structures as defined in ToyGrammar:
 
---data TileType = TyInt | TyAxis | TyTile | TyBlank | TyFun TileType TileType
+--data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
 
 --type Environment = [ (String,Expr) ]
 
---data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr
+--data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
@@ -57,6 +58,7 @@ isValue TmX = True
 isValue TmY = True
 isValue (TmTile _ _) = True
 isValue (TmBlank _) = True
+isValue (TmCell _) = True
 isValue (Cl {}) = True
 isValue _ = False
 
@@ -72,8 +74,8 @@ eval1 (v,env,[]) | isValue v = (v,env,[])
 eval1 ((TmReflect e1 e2),env,k) = (e1,env,(HReflect e2 env):k)
 eval1 ((TmX),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmX)) : k)
 eval1 ((TmY),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmY)) : k)
-eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (parseTile (reflectTileX (unparse n) (unparse tile))),[],k)
-eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (parseTile (reflectTileY (unparse n) (unparse tile))),[],k)
+eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (reflectTileX n tile),[],k)
+eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (reflectTileY n tile),[],k)
 
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
@@ -101,35 +103,53 @@ unparse :: Expr -> String
 unparse (TmInt n)   = show n
 unparse TmX         = "X Axis"
 unparse TmY         = "Y Axis"
-unparse (TmTile n tile) = showTile (read $ unparse n) (read $ unparse n) "" (unparse tile)
+unparse (TmTile (TmInt n) tile) = showTile n tile
 unparse (Cl {}) = "Function Value"
 unparse _ = "Unknown"
 
-parseTile :: String -> Expr
-parseTile tile = (TmInt (read tile))
+tmInttoInt :: Expr -> Int
+tmInttoInt (TmInt n) = n
 
+displayTile :: [[Int]] -> String
+displayTile matrix = unlines $ map unwords $ map (map show) matrix
 
-unparseTile :: Expr -> Int
-unparseTile (TmInt n) = n
+showTile :: Int -> Expr -> String
+showTile n tile = displayTile $ makeTile n (tileExprToInt tile)
 
-parseTile' :: Int -> Expr
-parseTile' n = (TmInt n)
+----------------------------------
 
-showTile :: Int -> Int -> String -> String -> String
-showTile 0 n tile _             = tile
-showTile n 0 tile tileLoop      = showTile (n-1) n (tile ++ "\n") tileLoop
-showTile n nn tile (t:ileLoop)  = showTile n (nn-1) (tile ++ [t]) ileLoop
+tileExprToInt :: Expr -> [[Int]]
+tileExprToInt (TmCell e1) = tileExprToInt e1
+tileExprToInt (TmComma e1 e2) = tileExprToInt e1 ++ tileExprToInt e2
+tileExprToInt (TmInt n) = [[n]]
 
-packageTile :: Int -> Int -> [[Int]]
-packageTile x n = map (map digitToInt) (chunksOf n (show x))
+makeTile :: Int -> [[Int]] -> [[Int]]
+makeTile n xs = chunk n $ concat xs
+  where chunk _ [] = []
+        chunk m ys = take m ys : chunk m (drop m ys)
 
+unparseTile :: Expr -> Expr -> [[Int]]
+unparseTile n tile = makeTile (read $ unparse n) (tileExprToInt tile)
 
-reflectTileX :: String -> String -> String
-reflectTileX n tile = reverse (chunksOf (read n) tile) >>= id
+makeExpr :: Int -> [[Int]] -> Expr
+makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
+  where makeTmInt n = TmInt n
+        makeTmCell row = TmCell $ makeTmComma n $ map makeTmInt row
+        makeTmComma n [x] = x
+        makeTmComma n (x:xs) = TmComma x $ makeTmComma n xs
 
-reflectTileY :: String -> String -> String
-reflectTileY n tile = concatMap reverse (chunksOf (read n) tile)
+----------------------------------
 
-chunksOf :: Int -> [a] -> [[a]]
-chunksOf _ [] = []
-chunksOf n xs = take n xs : chunksOf n (drop n xs)
+reflectTileX :: Expr -> Expr -> Expr
+reflectTileX n tile = makeExpr (tmInttoInt n) (reflectX $ unparseTile n tile)
+
+reflectTileY :: Expr -> Expr -> Expr
+reflectTileY n tile = makeExpr (tmInttoInt n) (reflectY $ unparseTile n tile)
+
+reflectX :: [[Int]] -> [[Int]]
+reflectX = reverse
+
+reflectY :: [[Int]] -> [[Int]]
+reflectY = map reverse
+
+-----------------------------------

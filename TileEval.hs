@@ -7,7 +7,6 @@
 {-# HLINT ignore "Eta reduce" #-}
 module TileEval where
 import TileGrammar
-import Data.Char
 
 
 --Data structures as defined in ToyGrammar:
@@ -78,6 +77,16 @@ eval1 ((TmY),env1,(HReflect e env2):k) = (e,env2,(ReflectH (TmY)) : k)
 eval1 ((TmTile n tile),env,(ReflectH (TmX)):k) = (TmTile n (reflectTileX n tile),[],k)
 eval1 ((TmTile n tile),env,(ReflectH (TmY)):k) = (TmTile n (reflectTileY n tile),[],k)
 
+-- Evaluation rules for rotate operator
+eval1 ((TmRotate e1 e2),env,k) = (e1,env,(HRotate e2 env):k)
+eval1 ((TmInt x),env1,(HRotate e env2):k) = (e,env2,(RotateH (TmInt x)) : k)
+eval1 ((TmTile n tile),env,(RotateH (TmInt x)):k) = (TmTile n (rotateTile x n tile),[],k)
+
+-- Evaluation rules for scale operator
+eval1 ((TmScale e1 e2),env,k) = (e1,env,(HScale e2 env):k)
+eval1 ((TmInt x),env1,(HScale e env2):k) = (e,env2,(ScaleH (TmInt x)) : k)
+eval1 ((TmTile n tile),env,(ScaleH (TmInt x)):k) = (TmTile (scaleInt x n) (scaleTile x n tile),[],k)
+
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
 eval1 (v,env1,(HLet x typ e env2):k) | isValue v = (e, update env2 x v , k)
@@ -109,25 +118,32 @@ unparse (TmBlank (TmInt n)) = showBlankTile n
 unparse (Cl {}) = "Function Value"
 unparse _ = "Unknown"
 
+-- Function to evaluate int from a TmInt expression
 tmInttoInt :: Expr -> Int
 tmInttoInt (TmInt n) = n
 
+-- Function to display a tile in output, as a string
 showTile :: Int -> Expr -> String
 showTile n tile = displayTile $ makeTile n (tileExprToInt tile)
 
+-- Function to display a blank tile of n 0's, as a string
 showBlankTile :: Int -> String
 showBlankTile n = displayTile $ makeBlankTile n
 
+--change words and such ????
 displayTile :: [[Int]] -> String
 displayTile matrix = unlines $ map unwords $ map (map show) matrix
 
-----------------------------------
+-------------------------------------------
+--  CONVERSION BETWEEN EXPR and [[INT]]  --
+-------------------------------------------
 
 tileExprToInt :: Expr -> [[Int]]
 tileExprToInt (TmCell e1) = tileExprToInt e1
 tileExprToInt (TmComma e1 e2) = tileExprToInt e1 ++ tileExprToInt e2
 tileExprToInt (TmInt n) = [[n]]
 
+--change words and such!!
 makeTile :: Int -> [[Int]] -> [[Int]]
 makeTile n xs = chunk n $ concat xs
   where chunk _ [] = []
@@ -139,6 +155,7 @@ makeBlankTile n = replicate n (replicate n 0)
 unparseTile :: Expr -> Expr -> [[Int]]
 unparseTile n tile = makeTile (read $ unparse n) (tileExprToInt tile)
 
+--change words and such!!
 makeExpr :: Int -> [[Int]] -> Expr
 makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
   where makeTmInt n = TmInt n
@@ -146,7 +163,11 @@ makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
         makeTmComma n [x] = x
         makeTmComma n (x:xs) = TmComma x $ makeTmComma n xs
 
-----------------------------------
+
+--------------------------------------
+--          REFLECTION              --
+--------------------------------------
+
 
 reflectTileX :: Expr -> Expr -> Expr
 reflectTileX n tile = makeExpr (tmInttoInt n) (reflectX $ unparseTile n tile)
@@ -160,4 +181,61 @@ reflectX = reverse
 reflectY :: [[Int]] -> [[Int]]
 reflectY = map reverse
 
+
+--------------------------------------
+--          ROTATION                --
+--------------------------------------
+
+
+rotateTile :: Int -> Expr -> Expr -> Expr
+rotateTile x n tile = makeExpr (tmInttoInt n) (rotateTileInt x $ unparseTile n tile)
+
+rotateTileInt :: Int -> [[Int]] -> [[Int]]
+rotateTileInt n tile = iterate turn90 tile !! n
+  where
+    turn90 m = reverse (transpose m)
+
+--change this to show less copied stuff
+transpose :: [[a]] -> [[a]]
+transpose [] = []
+transpose ([]:xs) = transpose xs
+transpose ((x:xs):ys) = (x : [h | (h:_) <- ys]) : transpose (xs : [t | (_:t) <- ys])
+
+
 -----------------------------------
+--          SCALE                --
+-----------------------------------
+
+
+scaleTile :: Int -> Expr -> Expr -> Expr
+scaleTile x n tile = makeExpr (tmInttoInt n) (scaleTileInt x $ unparseTile n tile)
+
+--change this to show less copied stuff
+scaleTileInt :: Int -> [[Int]] -> [[Int]]
+scaleTileInt n matrix
+    | n > 0     = concat [replicate n (concatMap (replicate n) row) | row <- matrix]
+    | n < 0     = [take n' (drop (n' * i) (concat matrix)) | i <- [0..n'-1]]
+    | otherwise = matrix
+    where n' = abs n
+
+scaleInt :: Int -> Expr -> Expr
+scaleInt x n = TmInt (x * (tmInttoInt n))
+
+
+-------------------------------------
+--         AND, NOT, OR            --
+-------------------------------------
+
+
+
+--------------------------------
+--         SUBTILE            --
+--------------------------------
+
+
+
+
+--------------------------------
+--         COMBINE            --
+--------------------------------
+

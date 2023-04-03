@@ -15,7 +15,10 @@ import TileGrammar
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
---            | TmSubtile Expr Expr Expr
+--            | TmSubtile Expr Expr Expr Expr
+--            | TmCombine Expr Expr Expr Expr
+--            | TmRepeatH Expr Expr
+--            | TmRepeatV Expr Expr
 --            | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
 --            | TmVar String | TmLet String TileType Expr Expr
 --            | TmApp Expr Expr 
@@ -47,7 +50,8 @@ typeOf tenv (TmCell e1) = TyCell t1
 typeOf tenv (TmComma e1 e2) = TyComma t1 t2
    where (t1,t2) = (typeOf tenv e1, typeOf tenv e2)
 
-typeOf tenv (TmTile e1 (TmCell e2)) | (TyInt,TyCell t1) == (typeOf tenv e1,typeOf tenv (TmCell e2)) = TyTile
+typeOf tenv (TmTile e1 (TmCell e2)) | (TyInt,TyCell t1) == (typeOf tenv e1,typeOf tenv (TmCell e2)) && tileCheck e1 (TmCell e2) = TyTile
+                                    | otherwise = error "Invalid Tile!"
    where t1 = typeOf tenv e2
 
 typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1  = TyBlank
@@ -58,9 +62,13 @@ typeOf tenv (TmRotate e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2
 
 typeOf tenv (TmScale e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
-typeOf tenv (TmSubtile e1 e2 e3) | (TyInt,TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3) = TyTile
+typeOf tenv (TmSubtile e1 e2 e3 e4) | (TyInt,TyInt,TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile
 
-typeOf tenv (TmCombine e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
+typeOf tenv (TmCombine e1 e2 e3 e4) | (TyTile,TyTile,TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile
+
+typeOf tenv (TmRepeatH e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
+
+typeOf tenv (TmRepeatV e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
 
 typeOf tenv (TmAnd e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
@@ -93,3 +101,25 @@ unparseType (TyCell t1) = "Cell: [" ++ unparseType t1 ++ "]"
 unparseType (TyFun t1 t2) = unparseType t1 ++ " -> " ++ unparseType t2
 unparseType (TyComma t1 t2) = unparseType t1 ++ "," ++ unparseType t2
 
+---------------------------------------
+
+tileCheck :: Expr -> Expr -> Bool
+tileCheck n tile = lengthCheck (tmInttoInt n) (tileExprToInt tile) && numCheck (tileExprToInt tile)
+
+lengthCheck :: Int -> [Int] -> Bool
+lengthCheck n tile | length tile == n*n = True
+                   | otherwise = False
+
+numCheck :: [Int] -> Bool
+numCheck [] = True
+numCheck (x:xs) | x == 0 || x == 1 = numCheck xs
+                    | otherwise = False
+
+-- Function to evaluate int from a TmInt expression
+tmInttoInt :: Expr -> Int
+tmInttoInt (TmInt n) = n
+
+tileExprToInt :: Expr -> [Int]
+tileExprToInt (TmCell e1) = tileExprToInt e1
+tileExprToInt (TmComma e1 e2) = tileExprToInt e1 ++ tileExprToInt e2
+tileExprToInt (TmInt n) = [n]

@@ -26,6 +26,8 @@ import TileTokens
     OR          { TokenOr _ }
     subtile     { TokenSubtile _ }
     combine     { TokenCombine _ }
+    repeatH     { TokenRepeatH _ }
+    repeatV     { TokenRepeatV _ }
 
     lam         { TokenLambda _ }
     let         { TokenLet _ }
@@ -47,6 +49,7 @@ import TileTokens
 %right in
 %right Cell
 %left tile blank
+%left repeatH repeatV
 %left AND NOT OR
 %left reflect rotate scale subtile combine
 %left ','
@@ -68,14 +71,16 @@ Exp : x                                         { TmX }
     | AND Exp Exp                               { TmAnd $2 $3 }
     | NOT Exp                                   { TmNot $2 }
     | OR Exp Exp                                { TmOr $2 $3 }
-    | subtile '(' Exp ',' Exp ')' Exp           { TmSubtile $3 $5 $7 }
-    | combine Exp Exp                           { TmCombine $2 $3 }
+    | subtile Exp '(' Exp ',' Exp ')' Exp       { TmSubtile $2 $4 $6 $8 }
+    | combine '(' Exp ')' '(' Exp ')' 
+    '(' Exp ')' '(' Exp ')'                     { TmCombine $3 $6 $9 $12 }
+    | repeatH Exp Exp                           { TmRepeatH $2 $3 }
+    | repeatV Exp Exp                           { TmRepeatV $2 $3 }
 
     | lam '(' var ':' Type ')' Exp              { TmLambda $3 $5 $7 }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
     | Exp Exp %prec APP                         { TmApp $1 $2 } 
     | '(' Exp ')'                               { $2 }
-    | '[' '[' Exp ']' ']'                       { TmBigCell $3 }
     | '[' Exp ']'                               { TmCell $2 }
     | Exp ',' Exp                               { TmComma $1 $3 }
 
@@ -94,17 +99,19 @@ parseError :: [TileToken] -> a
 parseError [] = error "Unknown Parse Error" 
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
-data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell TileType | TyBigCell | TyFun TileType TileType | TyComma TileType TileType
+data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
 
-data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmBigCell Expr | TmComma Expr Expr
+data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
             | TmReflect Expr Expr 
             | TmRotate Expr Expr
             | TmScale Expr Expr
-            | TmSubtile Expr Expr Expr
-            | TmCombine Expr Expr
+            | TmSubtile Expr Expr Expr Expr
+            | TmCombine Expr Expr Expr Expr
+            | TmRepeatH Expr Expr
+            | TmRepeatV Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
             | TmVar String | TmLet String TileType Expr Expr
             | TmLambda String TileType Expr | TmApp Expr Expr 

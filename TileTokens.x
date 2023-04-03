@@ -30,6 +30,8 @@ tokens :-
   OR             { tok (\p s -> TokenOr p) }
   subtile        { tok (\p s -> TokenSubtile p) }
   combine        { tok (\p s -> TokenCombine p) }
+  repeatH        { tok (\p s -> TokenRepeatH p) }
+  repeatV        { tok (\p s -> TokenRepeatV p) }
 
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
@@ -70,6 +72,8 @@ data TileToken =
   TokenOr AlexPosn               |
   TokenSubtile AlexPosn          |
   TokenCombine AlexPosn          |
+  TokenRepeatH AlexPosn          |
+  TokenRepeatV AlexPosn          |
 
   TokenTypeInt  AlexPosn         | 
   TokenTypeTile AlexPosn         |
@@ -107,6 +111,8 @@ tokenPosn (TokenNot (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenOr (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenSubtile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCombine (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenRepeatH (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenRepeatV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

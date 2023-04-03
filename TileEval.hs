@@ -5,6 +5,7 @@
 {-# HLINT ignore "Use join" #-}
 {-# HLINT ignore "Use map once" #-}
 {-# HLINT ignore "Eta reduce" #-}
+{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module TileEval where
 import TileGrammar
 
@@ -19,7 +20,8 @@ import TileGrammar
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
---            | TmSubtile Expr Expr Expr
+--            | TmSubtile Expr Expr Expr Expr
+--            | TmCombine Expr Expr Expr Expr
 --            | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
 --            | TmVar String | TmLet String TileType Expr Expr
 --            | TmApp Expr Expr 
@@ -28,7 +30,12 @@ import TileGrammar
 data Frame = HReflect Expr Environment | ReflectH Expr
            | HRotate Expr Environment | RotateH Expr
            | HScale Expr Environment | ScaleH Expr
-           | HSubtile Expr Expr Environment
+           | HSubtile Expr Expr Expr Environment | HHSubtile Expr Expr Expr Environment
+           | HHHSubtile Expr Expr Expr Environment | SubtileH Expr Expr Expr
+           | HCombine Expr Expr Expr Environment | HHCombine Expr Expr Expr Environment
+           | HHHCombine Expr Expr Expr Environment | CombineH Expr Expr Expr
+           | HRepeatHo Expr Environment | RepeatHoH Expr
+           | HRepeatVe Expr Environment | RepeatVeH Expr
            | HAnd Expr Environment | AndH Expr
            | HOr Expr Environment | OrH Expr
            | NotH
@@ -86,6 +93,48 @@ eval1 ((TmTile n tile),env,(RotateH (TmInt x)):k) = (TmTile n (rotateTile x n ti
 eval1 ((TmScale e1 e2),env,k) = (e1,env,(HScale e2 env):k)
 eval1 ((TmInt x),env1,(HScale e env2):k) = (e,env2,(ScaleH (TmInt x)) : k)
 eval1 ((TmTile n tile),env,(ScaleH (TmInt x)):k) = (TmTile (scaleInt x n) (scaleTile x n tile),[],k)
+
+-- Evaluation rules for AND operator
+eval1 ((TmAnd e1 e2),env,k) = (e1,env,(HAnd e2 env):k)
+eval1 ((TmTile n1 tile1),env1,(HAnd e env2):k) = (e,env2,(AndH (TmTile n1 tile1)) : k)
+eval1 ((TmTile n1 tile1),env,(AndH (TmTile n2 tile2)):k) | (checkTileSize n1 n2) = (TmTile n1 (andTile n1 tile1 tile2),[],k)
+                                                         | otherwise = error "Tile size is different; cannot perform AND"
+
+-- Evaluation rules for OR operator
+eval1 ((TmOr e1 e2),env,k) = (e1,env,(HOr e2 env):k)
+eval1 ((TmTile n1 tile1),env1,(HOr e env2):k) = (e,env2,(OrH (TmTile n1 tile1)) : k)
+eval1 ((TmTile n1 tile1),env,(OrH (TmTile n2 tile2)):k) | (checkTileSize n1 n2) = (TmTile n1 (orTile n1 tile1 tile2),[],k)
+                                                         | otherwise = error "Tile size is different; cannot perform OR"
+
+-- Evaluation rules for NOT operator
+eval1 ((TmNot e1),env,k) = (e1,env, NotH : k)
+eval1 ((TmTile n tile),env, NotH : k) = (TmTile n (notTile n tile),[],k)
+
+-- Evaluation rules for subtile operator
+eval1 ((TmSubtile e1 e2 e3 e4),env,k)             = (e1,env, (HSubtile e2 e3 e4 env):k)
+eval1 ((TmInt m),env1,(HSubtile e2 e3 e4 env2):k) = (e2,env2,(HHSubtile (TmInt m) e3 e4 env1) : k)
+eval1 ((TmInt x),env1,(HHSubtile e1 e3 e4 env2):k) = (e3,env2,(HHHSubtile e1 (TmInt x) e4 env1) : k)
+eval1 ((TmInt y),env1,(HHHSubtile e1 e2 e4 env2):k) = (e4,env2,(SubtileH e1 e2 (TmInt y)) : k)
+eval1 ((TmTile n tile),env,(SubtileH (TmInt m) (TmInt x) (TmInt y)):k) = (TmTile (TmInt m) (tileSub n m x y tile),[],k)
+
+-- Evaluation rules for combine operator
+eval1 ((TmCombine e1 e2 e3 e4),env,k)             = (e1,env, (HCombine e2 e3 e4 env):k)
+eval1 ((TmTile n1 tile1),env1,(HCombine e2 e3 e4 env2):k) = (e2,env2,(HHCombine (TmTile n1 tile1) e3 e4 env1) : k)
+eval1 ((TmTile n2 tile2),env1,(HHCombine e1 e3 e4 env2):k) = (e3,env2,(HHHCombine e1 (TmTile n2 tile2) e4 env1) : k)
+eval1 ((TmTile n3 tile3),env1,(HHHCombine e1 e2 e4 env2):k) = (e4,env2,(CombineH e1 e2 (TmTile n3 tile3)) : k)
+eval1 ((TmTile n4 tile4),env,(CombineH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k) 
+    | checkCombineSize n1 n2 n3 n4 = (TmTile (combineSize n1 n2) (tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4),[],k)
+    | otherwise = error "Combine does not produce a N*N tile!"
+
+-- Evaluation rules for repeatH operator
+eval1 ((TmRepeatH e1 e2),env,k) = (e1,env,(HRepeatHo e2 env):k)
+eval1 ((TmInt x),env1,(HRepeatHo e env2):k) = (e,env2,(RepeatHoH (TmInt x)) : k)
+eval1 ((TmTile (TmInt n) tile),env,(RepeatHoH (TmInt x)):k) = (TmTile (TmInt (n*x)) (repeatTileH x n tile),[],k)
+
+-- Evaluation rules for repeatV operator
+eval1 ((TmRepeatV e1 e2),env,k) = (e1,env,(HRepeatVe e2 env):k)
+eval1 ((TmInt y),env1,(HRepeatVe e env2):k) = (e,env2,(RepeatVeH (TmInt y)) : k)
+eval1 ((TmTile (TmInt n) tile),env,(RepeatVeH (TmInt y)):k) = (TmTile (TmInt n) (repeatTileV y n tile),[],k)
 
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
@@ -145,15 +194,18 @@ tileExprToInt (TmInt n) = [[n]]
 
 --change words and such!!
 makeTile :: Int -> [[Int]] -> [[Int]]
-makeTile n xs = chunk n $ concat xs
-  where chunk _ [] = []
-        chunk m ys = take m ys : chunk m (drop m ys)
+makeTile n xs = separate n $ concat xs
+  where separate _ [] = []
+        separate m ys = take m ys : separate m (drop m ys)
 
 makeBlankTile :: Int -> [[Int]]
 makeBlankTile n = replicate n (replicate n 0)
 
 unparseTile :: Expr -> Expr -> [[Int]]
 unparseTile n tile = makeTile (read $ unparse n) (tileExprToInt tile)
+
+unparseTile' :: Int -> Expr -> [[Int]]
+unparseTile' n tile = makeTile n (tileExprToInt tile)
 
 --change words and such!!
 makeExpr :: Int -> [[Int]] -> Expr
@@ -163,11 +215,9 @@ makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
         makeTmComma n [x] = x
         makeTmComma n (x:xs) = TmComma x $ makeTmComma n xs
 
-
 --------------------------------------
 --          REFLECTION              --
 --------------------------------------
-
 
 reflectTileX :: Expr -> Expr -> Expr
 reflectTileX n tile = makeExpr (tmInttoInt n) (reflectX $ unparseTile n tile)
@@ -181,11 +231,9 @@ reflectX = reverse
 reflectY :: [[Int]] -> [[Int]]
 reflectY = map reverse
 
-
 --------------------------------------
 --          ROTATION                --
 --------------------------------------
-
 
 rotateTile :: Int -> Expr -> Expr -> Expr
 rotateTile x n tile = makeExpr (tmInttoInt n) (rotateTileInt x $ unparseTile n tile)
@@ -201,11 +249,9 @@ transpose [] = []
 transpose ([]:xs) = transpose xs
 transpose ((x:xs):ys) = (x : [h | (h:_) <- ys]) : transpose (xs : [t | (_:t) <- ys])
 
-
 -----------------------------------
 --          SCALE                --
 -----------------------------------
-
 
 scaleTile :: Int -> Expr -> Expr -> Expr
 scaleTile x n tile = makeExpr (tmInttoInt n) (scaleTileInt x $ unparseTile n tile)
@@ -221,22 +267,76 @@ scaleTileInt n matrix
 scaleInt :: Int -> Expr -> Expr
 scaleInt x n = TmInt (x * (tmInttoInt n))
 
-
 -------------------------------------
 --         AND, NOT, OR            --
 -------------------------------------
 
-andTile :: Expr -> Expr
-andTile expr = undefined
+checkTileSize :: Expr -> Expr -> Bool
+checkTileSize (TmInt x1) (TmInt x2) | x1 == x2  = True
+                    | otherwise = False
+
+andTile :: Expr -> Expr -> Expr -> Expr
+andTile n tile1 tile2 = makeExpr (tmInttoInt n) (tileAnd (unparseTile n tile1) (unparseTile n tile2))
+
+orTile :: Expr -> Expr -> Expr -> Expr
+orTile n tile1 tile2 = makeExpr (tmInttoInt n) (tileOr (unparseTile n tile1) (unparseTile n tile2))
+
+notTile :: Expr -> Expr -> Expr
+notTile n tile = makeExpr (tmInttoInt n) (tileNot (unparseTile n tile))
+
+tileAnd :: [[Int]] -> [[Int]] -> [[Int]]
+tileAnd a b = zipWith (zipWith (\x y -> if x == 1 && y == 1 then 1 else 0)) a b
+
+tileOr :: [[Int]] -> [[Int]] -> [[Int]]
+tileOr a b = zipWith (zipWith (\x y -> if x == 1 || y == 1 then 1 else 0)) a b
+
+tileNot :: [[Int]] -> [[Int]]
+tileNot = map (map (\x -> if x == 0 then 1 else 0))
 
 --------------------------------
 --         SUBTILE            --
 --------------------------------
 
+tileSub :: Expr -> Int -> Int -> Int -> Expr -> Expr
+tileSub n m x y tile = makeExpr m (getSubTile m x y (unparseTile' (tmInttoInt n) tile))
 
-
+getSubTile :: Int -> Int -> Int -> [[Int]] -> [[Int]]
+getSubTile m x y matrix
+  | x < 0 || y < 0 || x+m > length matrix || y+m > length (head matrix) = error "Invalid coordinates!"
+  | otherwise = take m $ drop x $ map (take m . drop y) matrix
 
 --------------------------------
 --         COMBINE            --
 --------------------------------
 
+combineSize :: Expr -> Expr -> Expr
+combineSize n1 n2 = (TmInt $ (tmInttoInt n1) + (tmInttoInt n2))
+
+tileCombine :: Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr
+tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4 = makeExpr ((tmInttoInt n1) + (tmInttoInt n2)) (getCombineTile (unparseTile n1 tile1) (unparseTile n2 tile2) (unparseTile n3 tile3) (unparseTile n4 tile4))
+
+getCombineTile :: [[Int]] -> [[Int]] -> [[Int]] -> [[Int]] -> [[Int]]
+getCombineTile tile1 tile2 tile3 tile4 =
+  let n = length tile1
+      topRows = zipWith (++) tile1 tile2
+      bottomRows = zipWith (++) tile3 tile4
+  in topRows ++ bottomRows
+
+checkCombineSize :: Expr -> Expr -> Expr -> Expr -> Bool
+checkCombineSize n1 n2 n3 n4 = (tmInttoInt n1) == (tmInttoInt n2) && (tmInttoInt n3) == (tmInttoInt n4) && (tmInttoInt n1) == (tmInttoInt n3)
+
+-------------------------------
+--         REPEAT            --
+-------------------------------
+
+repeatTileH :: Int -> Int -> Expr -> Expr
+repeatTileH x n tile = makeExpr (n*x) (getRepeatH x (unparseTile' n tile))
+
+repeatTileV:: Int -> Int -> Expr -> Expr
+repeatTileV x n tile = makeExpr n (getRepeatV x (unparseTile' n tile))
+
+getRepeatH :: Int -> [[Int]] -> [[Int]]
+getRepeatH x tile = map (concat . replicate x) tile
+
+getRepeatV :: Int -> [[Int]] -> [[Int]]
+getRepeatV y tile = concat $ replicate y tile

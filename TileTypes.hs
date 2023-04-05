@@ -54,7 +54,7 @@ typeOf tenv (TmTile e1 (TmCell e2)) | (TyInt,TyCell t1) == (typeOf tenv e1,typeO
                                     | otherwise = error "Invalid Tile!"
    where t1 = typeOf tenv e2
 
-typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1  = TyBlank
+typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1 = TyTile
 
 typeOf tenv (TmReflect e1 e2) | (TyAxis,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
@@ -69,6 +69,8 @@ typeOf tenv (TmCombine e1 e2 e3 e4) | (TyTile,TyTile,TyTile,TyTile) == (typeOf t
 typeOf tenv (TmRepeatH e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
 
 typeOf tenv (TmRepeatV e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
+
+typeOf tenv (TmReplace e1 e2 e3 e4) | (TyInt,TyInt,TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile  --might need to check this type!!
 
 typeOf tenv (TmAnd e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 

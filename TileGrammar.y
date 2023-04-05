@@ -28,6 +28,7 @@ import TileTokens
     combine     { TokenCombine _ }
     repeatH     { TokenRepeatH _ }
     repeatV     { TokenRepeatV _ }
+    replace     { TokenReplace _ }
 
     lam         { TokenLambda _ }
     let         { TokenLet _ }
@@ -51,7 +52,7 @@ import TileTokens
 %left tile blank
 %left repeatH repeatV
 %left AND NOT OR
-%left reflect rotate scale subtile combine
+%left reflect rotate scale subtile combine replace
 %left ','
 %nonassoc x y int var '(' ')' '[' ']' '.'
 %left lam
@@ -76,6 +77,7 @@ Exp : x                                         { TmX }
     '(' Exp ')' '(' Exp ')'                     { TmCombine $3 $6 $9 $12 }
     | repeatH Exp Exp                           { TmRepeatH $2 $3 }
     | repeatV Exp Exp                           { TmRepeatV $2 $3 }
+    | replace '(' Exp ',' Exp ')' Exp Exp       { TmReplace $3 $5 $7 $8 }
 
     | lam '(' var ':' Type ')' Exp              { TmLambda $3 $5 $7 }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
@@ -112,6 +114,7 @@ data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Exp
             | TmCombine Expr Expr Expr Expr
             | TmRepeatH Expr Expr
             | TmRepeatV Expr Expr
+            | TmReplace Expr Expr Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
             | TmVar String | TmLet String TileType Expr Expr
             | TmLambda String TileType Expr | TmApp Expr Expr 

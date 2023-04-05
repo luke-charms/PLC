@@ -32,6 +32,7 @@ tokens :-
   combine        { tok (\p s -> TokenCombine p) }
   repeatH        { tok (\p s -> TokenRepeatH p) }
   repeatV        { tok (\p s -> TokenRepeatV p) }
+  replace        { tok (\p s -> TokenReplace p) }
 
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
@@ -74,6 +75,7 @@ data TileToken =
   TokenCombine AlexPosn          |
   TokenRepeatH AlexPosn          |
   TokenRepeatV AlexPosn          |
+  TokenReplace AlexPosn          |
 
   TokenTypeInt  AlexPosn         | 
   TokenTypeTile AlexPosn         |
@@ -113,6 +115,7 @@ tokenPosn (TokenSubtile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCombine (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatH (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenReplace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

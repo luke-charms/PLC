@@ -179,7 +179,7 @@ eval1 ((TmTile (TmInt n) tile2),env,(ReplaceH (TmInt x) (TmInt y) (TmTile (TmInt
 -- Evaluation rules for length operator
 eval1 ((TmLength e1),env,k) = (e1,env, LengthH : k)
 eval1 ((TmBlank n),env, LengthH : k) = ((TmTile n (makeBlank n)),env, LengthH : k)
-eval1 ((TmTile n tile),env, LengthH : k) = (n,[],k)
+eval1 ((TmTile n tile),env, LengthH : k) = (n,env,k)
 
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)

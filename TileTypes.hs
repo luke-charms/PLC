@@ -42,6 +42,10 @@ typeOf tenv TmX = TyAxis
 
 typeOf tenv TmY = TyAxis
 
+typeOf tenv TmTrue = TyBool
+
+typeOf tenv TmFalse = TyBool
+
 typeOf tenv (TmCell e1) = TyCell t1
    where t1 = typeOf tenv e1
 
@@ -53,6 +57,18 @@ typeOf tenv (TmTile e1 (TmCell e2)) | (TyInt,TyCell t1) == (typeOf tenv e1,typeO
    where t1 = typeOf tenv e2
 
 typeOf tenv (TmBlank e1) | TyInt == typeOf tenv e1 = TyTile
+
+typeOf tenv (TmLessThan e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2)  = TyBool
+
+typeOf tenv (TmMoreThan e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2)  = TyBool
+
+typeOf tenv (TmLessThanEqual e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2)  = TyBool
+
+typeOf tenv (TmMoreThanEqual e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2)  = TyBool
+
+typeOf tenv (TmAdd e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
+
+typeOf tenv (TmMinus e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
 
 typeOf tenv (TmReflect e1 e2) | (TyAxis,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
@@ -80,6 +96,10 @@ typeOf tenv (TmNot e1) | TyTile == typeOf tenv e1 = TyTile
 
 typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
+typeOf tenv (TmIf e1 e2 e3) | t2 == t3 = t2
+  where (TyBool,t2,t3) = (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3)
+
+
 typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
 
 typeOf tenv (TmVar x) = getBinding x tenv
@@ -101,6 +121,7 @@ typeOf tenv _ = error "Type Error"
 unparseType :: TileType -> String
 unparseType TyInt = "Int"
 unparseType TyAxis = "Axis"
+unparseType TyBool = "Bool"
 unparseType TyTile = "Tile"
 unparseType TyBlank = "Blank Tile"
 unparseType (TyCell t1) = "Cell: [" ++ unparseType t1 ++ "]"

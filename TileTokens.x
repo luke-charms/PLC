@@ -12,7 +12,6 @@ tokens :-
   $white+        ; 
   "--".*         ;
 
-  Axis           { tok (\p s -> TokenTypeAxis p) }
   "->"           { tok (\p s -> TokenTypeArr p) }
   \,             { tok (\p s -> TokenComma p) }
   \.             { tok (\p s -> TokenDot p) }
@@ -21,6 +20,17 @@ tokens :-
   y              { tok (\p s -> TokenYAxis p) }
   tile           { tok (\p s -> TokenTile p) }
   blank          { tok (\p s -> TokenBlank p) }
+  true           { tok (\p s -> TokenTrue p) }
+  false          { tok (\p s -> TokenFalse p) }
+  \<             { tok (\p s -> TokenLessThan p) }
+  \>             { tok (\p s -> TokenMoreThan p) }
+  \<=            { tok (\p s -> TokenLessThanEqual p) }
+  \>=            { tok (\p s -> TokenMoreThanEqual p) }
+  \+             { tok (\p s -> TokenPlus p) }
+  \-             { tok (\p s -> TokenMinus p) }
+  if             { tok (\p s -> TokenIf p) }
+  then           { tok (\p s -> TokenThen p) }
+  else           { tok (\p s -> TokenElse p) }
 
   reflect        { tok (\p s -> TokenReflect p) }
   rotate         { tok (\p s -> TokenRotate p) }
@@ -40,6 +50,8 @@ tokens :-
   Tile           { tok (\p s -> TokenTypeTile p) }
   Blank          { tok (\p s -> TokenTypeBlank p) }
   Cell           { tok (\p s -> TokenTypeCell p) }
+  Bool           { tok (\p s -> TokenTypeBool p)} 
+  Axis           { tok (\p s -> TokenTypeAxis p) }
 
   length         { tok (\p s -> TokenLength p) }
   \:             { tok (\p s -> TokenHasType p) }
@@ -68,6 +80,18 @@ data TileToken =
   TokenTypeArr  AlexPosn         |
   TokenTile AlexPosn             |
   TokenBlank AlexPosn            |
+  TokenTrue AlexPosn             |
+  TokenFalse AlexPosn            |
+  TokenLessThan AlexPosn         |
+  TokenMoreThan AlexPosn         |
+  TokenLessThanEqual AlexPosn    |
+  TokenMoreThanEqual AlexPosn    |
+  TokenPlus AlexPosn             |
+  TokenMinus AlexPosn            |
+  TokenIf AlexPosn               |
+  TokenThen AlexPosn             |
+  TokenElse AlexPosn             |
+
   TokenReflect AlexPosn          |
   TokenRotate AlexPosn           |
   TokenScale AlexPosn            |
@@ -83,6 +107,7 @@ data TileToken =
   TokenRepeatV AlexPosn          |
   TokenReplace AlexPosn          |
 
+  TokenTypeBool AlexPosn         | 
   TokenTypeInt  AlexPosn         | 
   TokenTypeTile AlexPosn         |
   TokenTypeBlank AlexPosn        |
@@ -112,6 +137,18 @@ tokenPosn (TokenYAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeArr  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenTrue  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenFalse  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLessThan  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenMoreThan  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLessThanEqual  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenMoreThanEqual  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenPlus  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenMinus  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenIf (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenThen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenElse (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+
 tokenPosn (TokenReflect (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRotate (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenScale (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -126,6 +163,7 @@ tokenPosn (TokenRepeatH (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenReplace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
+tokenPosn (TokenTypeBool (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

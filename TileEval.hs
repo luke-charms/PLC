@@ -34,7 +34,6 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HHHSubtile Expr Expr Expr Environment | SubtileH Expr Expr Expr
            | HCombine Expr Expr Expr Environment | HHCombine Expr Expr Expr Environment
            | HHHCombine Expr Expr Expr Environment | CombineH Expr Expr Expr
---           | CombineHH Expr Expr Expr | CombineHHH Expr Expr Expr
            | HCombineHo Expr Environment | CombineHoH Expr
            | HCombineVe Expr Environment | CombineVeH Expr
            | HRepeatHo Expr Environment | RepeatHoH Expr
@@ -43,8 +42,14 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HHHReplace Expr Expr Expr Environment| ReplaceH Expr Expr Expr
            | HAnd Expr Environment | AndH Expr
            | HOr Expr Environment | OrH Expr
-           | NotH
-           | LengthH
+           | NotH | LengthH
+           | HLessThan Expr Environment | LessThanH Expr
+           | HMoreThan Expr Environment | MoreThanH Expr
+           | HLessThanEqual Expr Environment | LessThanEqualH Expr
+           | HMoreThanEqual Expr Environment | MoreThanEqualH Expr
+           | HAdd Expr Environment | AddH Expr
+           | HMinus Expr Environment | MinusH Expr
+           | HIf Expr Expr Environment
            | HLet String TileType Expr Environment
            | HApp Expr Environment | AppH Expr
 type Kontinuation = [ Frame ]
@@ -69,6 +74,8 @@ isValue :: Expr -> Bool
 isValue (TmInt _) = True
 isValue TmX = True
 isValue TmY = True
+isValue TmTrue = True
+isValue TmFalse = True
 isValue (TmTile _ _) = True
 isValue (TmBlank _) = True
 isValue (TmCell _) = True
@@ -134,26 +141,15 @@ eval1 ((TmBlank n),env,(SubtileH (TmInt m) (TmInt x) (TmInt y)):k) = ((TmTile n 
 eval1 ((TmTile n tile),env,(SubtileH (TmInt m) (TmInt x) (TmInt y)):k) = (TmTile (TmInt m) (tileSub n m x y tile),env,k)
 
 -- Evaluation rules for combine operator
-eval1 ((TmCombine e1 e2 e3 e4),env,k)             = (e1,env,(HCombine e2 e3 e4 env):k)
-
+eval1 ((TmCombine e1 e2 e3 e4),env,k) = (e1,env,(HCombine e2 e3 e4 env):k)
 eval1 ((TmBlank n1),env1,(HCombine e2 e3 e4 env2):k) = ((TmTile n1 (makeBlank n1)),env1,(HCombine e2 e3 e4 env2):k)
 eval1 ((TmTile n1 tile1),env1,(HCombine e2 e3 e4 env2):k) = (e2,env1,(HHCombine (TmTile n1 tile1) e3 e4 env2) : k)
---eval1 ((TmTile n1 tile1),env1,(HCombine e2 e3 e4 env2):k) = (e2,env2,(CombineH (TmTile n1 tile1) e3 e4):k)
-
---eval1 ((TmBlank n2),env,(CombineH e1 e3 e4):k) = ((TmTile n2 (makeBlank n2)),env,(CombineH e1 e3 e4):k)
 eval1 ((TmBlank n2),env1,(HHCombine e1 e3 e4 env2):k) = ((TmTile n2 (makeBlank n2)),env1,(HHCombine e1 e3 e4 env2):k)
 eval1 ((TmTile n2 tile2),env1,(HHCombine e1 e3 e4 env2):k) = (e3,env1,(HHHCombine e1 (TmTile n2 tile2) e4 env2) : k)
---eval1 ((TmTile n2 tile2),env,(CombineH e1 e3 e4):k) = (e3,env,(CombineHH e1 (TmTile n2 tile2) e4):k)
-
---eval1 ((TmBlank n3),env,(CombineHH e1 e2 e4):k) = ((TmTile n3 (makeBlank n3)),env,(CombineHH e1 e2 e4 ):k)
 eval1 ((TmBlank n3),env1,(HHHCombine e1 e2 e4 env2):k) = ((TmTile n3 (makeBlank n3)),env1,(HHHCombine e1 e2 e4 env2):k)
 eval1 ((TmTile n3 tile3),env1,(HHHCombine e1 e2 e4 env2):k) = (e4,env2,(CombineH e1 e2 (TmTile n3 tile3)) : k)
---eval1 ((TmTile n3 tile3),env,(CombineHH e1 e2 e4):k) = (e4,env,(CombineHHH e1 e2 (TmTile n3 tile3)):k)
-
---eval1 ((TmBlank n4),env,(CombineHHH e1 e2 e3):k) = ((TmTile n4 (makeBlank n4)),env,(CombineHHH e1 e2 e3):k)
 eval1 ((TmBlank n4),env,(CombineH e1 e2 e3):k) = ((TmTile n4 (makeBlank n4)),env,(CombineH e1 e2 e3):k)
 eval1 ((TmTile n4 tile4),env,(CombineH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k)
---eval1 ((TmTile n4 tile4),env,(CombineHHH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k)
     | checkCombineSize n1 n2 n3 n4 = (TmTile (combineSize n1 n2) (tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4),env,k)
     | otherwise = error "Combine does not produce a N*N tile!"
 
@@ -201,6 +197,45 @@ eval1 ((TmLength e1),env,k) = (e1,env, LengthH : k)
 eval1 ((TmBlank n),env, LengthH : k) = ((TmTile n (makeBlank n)),env, LengthH : k)
 eval1 ((TmTile n tile),env, LengthH : k) = (n,env,k)
 
+-- Evaluation rules for less than operator
+eval1 ((TmLessThan e1 e2),env,k) = (e1,env,(HLessThan e2 env):k)
+eval1 ((TmInt n),env1,(HLessThan e env2):k) = (e,env2,(LessThanH (TmInt n)) : k)
+eval1 ((TmInt m),env,(LessThanH (TmInt n)):k) | n < m = (TmTrue,env,k)
+                                              | otherwise = (TmFalse,env,k)
+
+-- Evaluation rules for more than operator
+eval1 ((TmMoreThan e1 e2),env,k) = (e1,env,(HMoreThan e2 env):k)
+eval1 ((TmInt n),env1,(HMoreThan e env2):k) = (e,env2,(MoreThanH (TmInt n)) : k)
+eval1 ((TmInt m),env,(MoreThanH (TmInt n)):k) | n > m = (TmTrue,env,k)
+                                              | otherwise = (TmFalse,env,k)
+
+-- Evaluation rules for less than and equal to operator
+eval1 ((TmLessThanEqual e1 e2),env,k) = (e1,env,(HLessThanEqual e2 env):k)
+eval1 ((TmInt n),env1,(HLessThanEqual e env2):k) = (e,env2,(LessThanEqualH (TmInt n)) : k)
+eval1 ((TmInt m),env,(LessThanEqualH (TmInt n)):k) | n <= m = (TmTrue,env,k)
+                                                   | otherwise = (TmFalse,env,k)
+
+-- Evaluation rules for more than and equal to operator
+eval1 ((TmMoreThanEqual e1 e2),env,k) = (e1,env,(HMoreThanEqual e2 env):k)
+eval1 ((TmInt n),env1,(HMoreThanEqual e env2):k) = (e,env2,(MoreThanEqualH (TmInt n)) : k)
+eval1 ((TmInt m),env,(MoreThanEqualH (TmInt n)):k) | n >= m = (TmTrue,env,k)
+                                                   | otherwise = (TmFalse,env,k)
+
+-- Evaluation rules for plus operator
+eval1 ((TmAdd e1 e2),env,k) = (e1,env,(HAdd e2 env):k)
+eval1 ((TmInt n),env1,(HAdd e env2):k) = (e,env2,(AddH (TmInt n)) : k)
+eval1 ((TmInt m),env,(AddH (TmInt n)):k) = (TmInt (n + m),env,k)
+
+-- Evaluation rules for minus operator
+eval1 ((TmMinus e1 e2),env,k) = (e1,env,(HMinus e2 env):k)
+eval1 ((TmInt n),env1,(HMinus e env2):k) = (e,env2,(MinusH (TmInt n)) : k)
+eval1 ((TmInt m),env,(MinusH (TmInt n)):k) = (TmInt (n - m),env,k)
+
+-- Evaluation rules for if-then-else
+eval1 ((TmIf e1 e2 e3),env,k) = (e1,env,(HIf e2 e3 env):k)
+eval1 (TmTrue,env1,(HIf e2 e3 env2):k) = (e2,env2,k)
+eval1 (TmFalse,env1,(HIf e2 e3 env2):k) = (e3,env2,k)
+
 -- Evaluation rules for Let blocks
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
 eval1 (v,env1,(HLet x typ e env2):k) | isValue v = (e, update env2 x v , k)
@@ -227,6 +262,8 @@ unparse :: Expr -> String
 unparse (TmInt n)   = show n
 unparse TmX         = "X Axis"
 unparse TmY         = "Y Axis"
+unparse (TmTrue) = "true"
+unparse (TmFalse) = "false"
 unparse (TmTile (TmInt n) tile) = showTile n tile
 --unparse (TmBlank (TmInt n)) = showBlankTile n
 unparse (Cl {}) = "Function Value"

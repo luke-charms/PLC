@@ -35,6 +35,8 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HCombine Expr Expr Expr Environment | HHCombine Expr Expr Expr Environment
            | HHHCombine Expr Expr Expr Environment | CombineH Expr Expr Expr
 --           | CombineHH Expr Expr Expr | CombineHHH Expr Expr Expr
+           | HCombineHo Expr Environment | CombineHoH Expr
+           | HCombineVe Expr Environment | CombineVeH Expr
            | HRepeatHo Expr Environment | RepeatHoH Expr
            | HRepeatVe Expr Environment | RepeatVeH Expr
            | HReplace Expr Expr Expr Environment | HHReplace Expr Expr Expr Environment
@@ -154,6 +156,24 @@ eval1 ((TmTile n4 tile4),env,(CombineH (TmTile n1 tile1) (TmTile n2 tile2) (TmTi
 --eval1 ((TmTile n4 tile4),env,(CombineHHH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k)
     | checkCombineSize n1 n2 n3 n4 = (TmTile (combineSize n1 n2) (tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4),env,k)
     | otherwise = error "Combine does not produce a N*N tile!"
+
+-- Evaluation rules for combineH operator
+eval1 ((TmCombineH e1 e2),env,k) = (e1,env,(HCombineHo e2 env):k)
+eval1 ((TmBlank n),env,(HCombineHo e env2):k) = ((TmTile n (makeBlank n)),env,(HCombineHo e env2):k)
+eval1 ((TmTile (TmInt n1) tile1),env1,(HCombineHo e env2):k) = (e,env2,(CombineHoH (TmTile (TmInt n1) tile1)) : k)
+eval1 ((TmBlank n),env,(CombineHoH e):k) = ((TmTile n (makeBlank n)),env,(CombineHoH e):k)
+eval1 ((TmTile (TmInt n2) tile2),env,(CombineHoH (TmTile (TmInt n1) tile1)):k) = (TmTile (TmInt (n1+n2)) (combineTileH n1 tile1 n2 tile2),env,k)
+--    | checkCombineHV n1 n2 = (TmTile (TmInt (n1+n2)) (combineTileH n1 tile1 n2 tile2),env,k)
+--    | otherwise = error "CombineH is not used with tiles of same height!"
+
+-- Evaluation rules for combineV operator
+eval1 ((TmCombineV e1 e2),env,k) = (e1,env,(HCombineVe e2 env):k)
+eval1 ((TmBlank n),env1,(HCombineVe e env2):k) = eval1 ((TmTile n (makeBlank n)),env1,(HCombineVe e env2):k)
+eval1 ((TmTile (TmInt n1) tile1),env1,(HCombineVe e env2):k) = (e,env2,(CombineVeH (TmTile (TmInt n1) tile1)) : k)
+eval1 ((TmBlank n),env,(CombineVeH e):k) = ((TmTile n (makeBlank n)),env,(CombineVeH e):k)
+eval1 ((TmTile (TmInt n2) tile2),env,(CombineVeH (TmTile (TmInt n1) tile1)):k) = (TmTile (TmInt n1) (combineTileV n1 tile1 n2 tile2),env,k)
+--    | checkCombineHV n1 n2 = (TmTile (TmInt n1) (combineTileV n1 tile1 n2 tile2),env,k)
+--    | otherwise = error "CombineV is not used with tiles of same width!"
 
 -- Evaluation rules for repeatH operator
 eval1 ((TmRepeatH e1 e2),env,k) = (e1,env,(HRepeatHo e2 env):k)
@@ -372,6 +392,21 @@ getCombineTile tile1 tile2 tile3 tile4 =
 
 checkCombineSize :: Expr -> Expr -> Expr -> Expr -> Bool
 checkCombineSize n1 n2 n3 n4 = (tmInttoInt n1) == (tmInttoInt n2) && (tmInttoInt n3) == (tmInttoInt n4) && (tmInttoInt n1) == (tmInttoInt n3)
+
+combineTileH :: Int -> Expr -> Int -> Expr -> Expr
+combineTileH n1 tile1 n2 tile2 = makeExpr (n1+n2) (getCombineTileH (unparseTile' n1 tile1) (unparseTile' n2 tile2))
+
+combineTileV :: Int -> Expr -> Int -> Expr -> Expr
+combineTileV n1 tile1 n2 tile2 = makeExpr (n1) (getCombineTileV (unparseTile' n1 tile1) (unparseTile' n2 tile2))
+
+getCombineTileH :: [[Int]] -> [[Int]] -> [[Int]]
+getCombineTileH tile1 tile2 = zipWith (++) tile1 tile2
+
+getCombineTileV :: [[Int]] -> [[Int]] -> [[Int]]
+getCombineTileV tile1 tile2 = tile1 ++ tile2
+
+checkCombineHV :: Int -> Int -> Bool
+checkCombineHV n1 n2 = n1 == n2
 
 -------------------------------
 --         REPEAT            --

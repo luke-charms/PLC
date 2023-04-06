@@ -3,8 +3,6 @@
 module TileTypes where
 import TileGrammar
 
-
-
 --Data structures as defined in ToyGrammar:
 
 --data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType
@@ -66,11 +64,15 @@ typeOf tenv (TmSubtile e1 e2 e3 e4) | (TyInt,TyInt,TyInt,TyTile) == (typeOf tenv
 
 typeOf tenv (TmCombine e1 e2 e3 e4) | (TyTile,TyTile,TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile
 
+typeOf tenv (TmCombineH e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
+
+typeOf tenv (TmCombineV e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
+
 typeOf tenv (TmRepeatH e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
 
 typeOf tenv (TmRepeatV e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile --might need to check this type!!
 
-typeOf tenv (TmReplace e1 e2 e3 e4) | (TyInt,TyInt,TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile  --might need to check this type!!
+typeOf tenv (TmReplace e1 e2 e3 e4) | (TyInt,TyInt,TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3, typeOf tenv e4) = TyTile
 
 typeOf tenv (TmAnd e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 

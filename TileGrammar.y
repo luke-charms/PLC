@@ -26,6 +26,8 @@ import TileTokens
     OR          { TokenOr _ }
     subtile     { TokenSubtile _ }
     combine     { TokenCombine _ }
+    combineH     { TokenCombineH _ }
+    combineV     { TokenCombineV _ }
     repeatH     { TokenRepeatH _ }
     repeatV     { TokenRepeatV _ }
     replace     { TokenReplace _ }
@@ -54,6 +56,7 @@ import TileTokens
 %left repeatH repeatV
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
+%left combineH combineV
 %left length
 %left ','
 %nonassoc x y int var '(' ')' '[' ']' '.'
@@ -77,6 +80,8 @@ Exp : x                                         { TmX }
     | subtile Exp '(' Exp ',' Exp ')' Exp       { TmSubtile $2 $4 $6 $8 }
     | combine '(' Exp ')' '(' Exp ')' 
     '(' Exp ')' '(' Exp ')'                     { TmCombine $3 $6 $9 $12 }
+    | combineH '(' Exp ')' '(' Exp ')'          { TmCombineH $3 $6 }
+    | combineV '(' Exp ')' '(' Exp ')'          { TmCombineV $3 $6 }
     | repeatH Exp Exp                           { TmRepeatH $2 $3 }
     | repeatV Exp Exp                           { TmRepeatV $2 $3 }
     | replace '(' Exp ',' Exp ')' Exp Exp       { TmReplace $3 $5 $7 $8 }
@@ -115,6 +120,8 @@ data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Exp
             | TmScale Expr Expr
             | TmSubtile Expr Expr Expr Expr
             | TmCombine Expr Expr Expr Expr
+            | TmCombineH Expr Expr
+            | TmCombineV Expr Expr
             | TmRepeatH Expr Expr
             | TmRepeatV Expr Expr
             | TmReplace Expr Expr Expr Expr

@@ -78,6 +78,8 @@ typeOf tenv (TmNot e1) | TyTile == typeOf tenv e1 = TyTile
 
 typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
+typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
+
 typeOf tenv (TmVar x) = getBinding x tenv
 
 typeOf tenv (TmLambda x t e) = TyFun t u

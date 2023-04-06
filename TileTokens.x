@@ -39,6 +39,7 @@ tokens :-
   Blank          { tok (\p s -> TokenTypeBlank p) }
   Cell           { tok (\p s -> TokenTypeCell p) }
 
+  length         { tok (\p s -> TokenLength p) }
   \:             { tok (\p s -> TokenHasType p) }
   let            { tok (\p s -> TokenLet p ) }
   =              { tok (\p s -> TokenEq p ) }
@@ -83,6 +84,7 @@ data TileToken =
   TokenInt AlexPosn Int          | 
   TokenTypeCell AlexPosn         |
 
+  TokenLength AlexPosn           |
   TokenLambda AlexPosn           |
   TokenHasType AlexPosn          |
   TokenLet AlexPosn              |
@@ -123,6 +125,7 @@ tokenPosn (TokenTypeBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenInt  (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeCell (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
+tokenPosn (TokenLength (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLambda (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenHasType (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLet (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

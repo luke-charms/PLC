@@ -11,7 +11,11 @@ DEPEND += TileTokens.hs TileGrammar.hs TileTypes.hs TileEval.hs
 
 # When "make" is invoked with no arguments, we build an executable 
 #  after building everything that it depends on
-all: $(DEPEND) Tilei
+all: $(DEPEND) Tilei Tile
+
+# Build an executable for Toy interpreter
+Tile: $(DEPEND) Tile.hs
+	ghc Tile.hs
 
 # Build an executable for interactive mode
 Tilei: $(DEPEND) Tilei.hs

@@ -59,12 +59,18 @@ import TileTokens
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
 
+    for         { TokenFor _ }
+    ';'         { TokenSemiColon _ }
+    col         { TokenCol _ }
+    row         { TokenRow _ }
+
 
 %left arr
 %right let
 %right in
 %right Cell
-%nonassoc if then else
+%nonassoc if then else for
+%nonassoc col row
 %nonassoc '<' '>' '<=' '>='
 %left '+' '-'
 %left tile blank
@@ -74,7 +80,7 @@ import TileTokens
 %left combineH combineV
 %left length
 %left ','
-%nonassoc x y int var true false '(' ')' '[' ']' '.'
+%nonassoc x y int var true false '(' ')' '[' ']' '.' ';'
 %left lam
 %left APP
 
@@ -119,6 +125,8 @@ Exp : x                                         { TmX }
     | '[' Exp ']'                               { TmCell $2 }
     | Exp ',' Exp                               { TmComma $1 $3 }
 
+    | for '(' Exp ';' col ',' row ')' Exp       { TmFor $3 $9 }
+
 
 Type : Bool                     { TyBool } 
      | Axis                     { TyAxis }
@@ -160,6 +168,8 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmVar String | TmLet String TileType Expr Expr
             | TmLambda String TileType Expr | TmApp Expr Expr 
             | Cl String TileType Expr Environment
+
+            | TmFor Expr Expr
     deriving (Show,Eq)
 }
 

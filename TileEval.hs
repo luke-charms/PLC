@@ -52,6 +52,8 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HIf Expr Expr Environment
            | HLet String TileType Expr Environment
            | HApp Expr Environment | AppH Expr
+
+           | HFor Expr Environment  | ForH Expr
 type Kontinuation = [ Frame ]
 type State = (Expr,Environment,Kontinuation)
 
@@ -247,6 +249,12 @@ eval1 ((TmLambda x typ e),env,k) = ((Cl x typ e env), [], k)
 eval1 ((TmApp e1 e2),env,k) = (e1,env, (HApp e2 env) : k)
 eval1 (v,env1,(HApp e env2):k ) | isValue v = (e, env2, (AppH v) : k)
 eval1 (v,env1,(AppH (Cl x typ e env2) ) : k )  = (e, update env2 x v, k)
+
+-- Evaluation rules for 'for' operator
+eval1 ((TmFor e1 e2),env,k) = (e1,env, (HFor e2 env) : k)
+eval1 ((TmBlank n),env1,(HFor e2 env2) : k) = ((TmTile n (makeBlank n)),env1,(HFor e2 env2) : k)
+eval1 ((TmTile n tile),env1,(HFor e2 env2) : k) = (e2,env2,(ForH (TmTile n tile)):k)
+eval1 (func,env,(ForH (TmTile n tile)):k) = ((TmTile n (forTile n tile func)),env,k)
 
 -- Rule for runtime errors
 eval1 (e,env,k) = error "Evaluation Error"
@@ -474,3 +482,16 @@ getTileReplace x y smallMatrix bigMatrix
   | otherwise =
     let replaceRows = zipWith (\a b -> take x a ++ b ++ drop (x+(length smallMatrix)) a) (drop y bigMatrix) smallMatrix
     in take y bigMatrix ++ replaceRows ++ drop (y+(length smallMatrix)) bigMatrix
+
+----------------------------
+--         FOR            --
+----------------------------
+
+forTile :: Expr -> Expr -> Expr ->  Expr
+forTile n tile func = makeExpr (tmInttoInt n) (getTileFor (unparseTile n tile) (funUnPack func) )
+
+funUnPack :: Expr -> (Int -> Int)
+funUnPack func = undefined
+
+getTileFor :: [[Int]] -> (Int -> Int) -> [[Int]]
+getTileFor tile func = map (map func) tile

@@ -66,6 +66,11 @@ tokens :-
   \]             { tok (\p s -> TokenRSquBracket p) }
   $alpha [$alpha $digit \_ \’]*   { tok (\p s -> TokenVar p s) } 
 
+  for            { tok (\p s -> TokenFor p) }
+  \;             { tok (\p s -> TokenSemiColon p) }
+  col            { tok (\p s -> TokenCol p) }
+  row            { tok (\p s -> TokenRow p) }
+
 { 
 -- Each action has type :: AlexPosn -> String -> MDLToken 
 
@@ -126,7 +131,12 @@ data TileToken =
   TokenRSquBracket AlexPosn      |
   TokenComma AlexPosn            |
   TokenDot AlexPosn              |
-  TokenVar AlexPosn String
+  TokenVar AlexPosn String       |
+
+  TokenFor AlexPosn              |
+  TokenSemiColon AlexPosn        |
+  TokenCol AlexPosn              |
+  TokenRow AlexPosn
   deriving (Eq,Show) 
 
 
@@ -183,5 +193,10 @@ tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenComma (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenDot (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenVar (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
+
+tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenSemiColon (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenCol (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenRow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 }

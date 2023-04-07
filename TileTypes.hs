@@ -99,7 +99,6 @@ typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) =
 typeOf tenv (TmIf e1 e2 e3) | t2 == t3 = t2
   where (TyBool,t2,t3) = (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3)
 
-
 typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
 
 typeOf tenv (TmVar x) = getBinding x tenv
@@ -114,6 +113,9 @@ typeOf tenv (TmApp e1 e2) | t1 == t3 = t2
 
 typeOf tenv (TmLet x t e1 e2) | t == t1 = typeOf (addBinding x t tenv) e2
   where t1 = typeOf tenv e1
+
+typeOf tenv (TmFor e1 e2) | (TyTile,t1) == (typeOf tenv e1,t1) = TyTile
+  where t1 = typeOf tenv e2
 
 typeOf tenv _ = error "Type Error"
 

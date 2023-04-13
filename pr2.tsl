@@ -1,0 +1,8 @@
+
+
+let (small:Tile) = (input (tile3)) in 
+
+let (big:Tile) = (combine (small) (rotate 1 small) (rotate 3 small) (rotate 2 small)) in 
+
+(replace ((length big),(length big)) (scale 3 big) (repeatV 5 (repeatH 5 ( big ))))
+

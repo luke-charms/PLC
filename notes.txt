@@ -1,0 +1,41 @@
+
+
+ -  don't know if the extent to which the FRAME needs to be described??  (look at subtile for example)
+
+-  repeatH and repeatV and combineH and combineV final output type checking ?!?
+
+- implement FOR loop or some sort of repetition for answering problem 1 ???
+
+-  performUnsafeIO BIG PROBLEM????!!!!
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+
+--eval1 ((TmTile n1 tile1),env1,(HCombine e2 e3 e4 env2):k) = (e2,env2,(CombineH (TmTile n1 tile1) e3 e4):k)
+--eval1 ((TmBlank n2),env,(CombineH e1 e3 e4):k) = ((TmTile n2 (makeBlank n2)),env,(CombineH e1 e3 e4):k)
+--eval1 ((TmTile n2 tile2),env,(CombineH e1 e3 e4):k) = (e3,env,(CombineHH e1 (TmTile n2 tile2) e4):k)
+--eval1 ((TmBlank n3),env,(CombineHH e1 e2 e4):k) = ((TmTile n3 (makeBlank n3)),env,(CombineHH e1 e2 e4 ):k)
+--eval1 ((TmTile n3 tile3),env,(CombineHH e1 e2 e4):k) = (e4,env,(CombineHHH e1 e2 (TmTile n3 tile3)):k)
+--eval1 ((TmBlank n4),env,(CombineHHH e1 e2 e3):k) = ((TmTile n4 (makeBlank n4)),env,(CombineHHH e1 e2 e3):k)
+--eval1 ((TmTile n4 tile4),env,(CombineHHH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k)
+--    | checkCombineSize n1 n2 n3 n4 = (TmTile (combineSize n1 n2) (tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4),env,k)
+--    | otherwise = error "Combine does not produce a N*N tile!"
+
+
+----------------------------------------------------------------------
+
+
+for (int i = 0; i < length tile; i++;) {
+    tile[i] = row
+    for ()
+}
+
+
+applyFuncTile (tile 2 [[0,1],[1,1]]; col,row) (if 0 then 1 else 0)
+
+

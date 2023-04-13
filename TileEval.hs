@@ -8,24 +8,39 @@
 {-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module TileEval where
 import TileGrammar
+import System.IO.Unsafe
 
 
 --Data structures as defined in ToyGrammar:
 
---data TileType = TyInt | TyAxis | TyTile | TyBlank | TyCell | TyFun TileType TileType
+--data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType | TyFile
 
 --type Environment = [ (String,Expr) ]
 
---data Expr = TmInt Int | TmX | TmY | TmTile Expr Expr | TmBlank Expr | TmCell Expr
+--data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse 
+--            | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
+--            | TmLessThan Expr Expr | TmMoreThan Expr Expr 
+--            | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
+--            | TmAdd Expr Expr | TmMinus Expr Expr
 --            | TmReflect Expr Expr 
 --            | TmRotate Expr Expr
 --            | TmScale Expr Expr
 --            | TmSubtile Expr Expr Expr Expr
 --            | TmCombine Expr Expr Expr Expr
+--            | TmCombineH Expr Expr
+--            | TmCombineV Expr Expr
+--            | TmRepeatH Expr Expr
+--            | TmRepeatV Expr Expr
+--            | TmReplace Expr Expr Expr Expr
 --            | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
+--            | TmLength Expr | TmIf Expr Expr Expr 
 --            | TmVar String | TmLet String TileType Expr Expr
---            | TmApp Expr Expr 
+--            | TmLambda String TileType Expr | TmApp Expr Expr 
 --            | Cl String TileType Expr Environment
+
+--            | TmFor Expr Expr
+--            | TmInp Expr
+--            | TmFile String
 
 data Frame = HReflect Expr Environment | ReflectH Expr
            | HRotate Expr Environment | RotateH Expr
@@ -54,6 +69,7 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HApp Expr Environment | AppH Expr
 
            | HFor Expr Environment  | ForH Expr
+           | InputH
 type Kontinuation = [ Frame ]
 type State = (Expr,Environment,Kontinuation)
 
@@ -255,6 +271,10 @@ eval1 ((TmFor e1 e2),env,k) = (e1,env, (HFor e2 env) : k)
 eval1 ((TmBlank n),env1,(HFor e2 env2) : k) = ((TmTile n (makeBlank n)),env1,(HFor e2 env2) : k)
 eval1 ((TmTile n tile),env1,(HFor e2 env2) : k) = (e2,env2,(ForH (TmTile n tile)):k)
 eval1 (func,env,(ForH (TmTile n tile)):k) = ((TmTile n (forTile n tile func)),env,k)
+
+-- Evaluation rules for input operator
+eval1 ((TmInp (TmVar fileName)),env,k) = ((TmInp (TmFile fileName)),env,LengthH : k)
+eval1 ((TmInp (TmFile fileName)),env,LengthH : k) = ((TmTile (TmInt (length $ readAndIndex fileName)) (makeInpTile fileName)),env,k)
 
 -- Rule for runtime errors
 eval1 (e,env,k) = error "Evaluation Error"
@@ -495,3 +515,17 @@ funUnPack func = undefined
 
 getTileFor :: [[Int]] -> (Int -> Int) -> [[Int]]
 getTileFor tile func = map (map func) tile
+
+------------------------------
+--         INPUT            --
+------------------------------
+
+makeInpTile :: String -> Expr
+makeInpTile inpTile = makeExpr (length (readAndIndex inpTile)) (readAndIndex inpTile)
+
+parseInpTile :: String -> [[Int]]
+parseInpTile tile = map (map (\c -> if c == '0' then 0 else 1)) (lines tile)
+
+readAndIndex :: FilePath -> [[Int]]
+readAndIndex fileName = parseInpTile $ unsafePerformIO $ readFile (fileName ++ ".tl")
+

@@ -6,13 +6,14 @@ import TileTokens
 %name parseCalc 
 %tokentype { TileToken } 
 %error { parseError }
-%token 
+%token
     Axis        { TokenTypeAxis _ }
     Int         { TokenTypeInt _ } 
     Tile        { TokenTypeTile _ }
     Blank       { TokenTypeBlank _ }
     Cell        { TokenTypeCell _ }
     Bool        { TokenTypeBool _ }
+    File        { TokenTypeFile _ }
 
     arr         { TokenTypeArr _ } 
     x           { TokenXAxis _ }
@@ -59,16 +60,17 @@ import TileTokens
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
 
+    input       { TokenInput _ }
+
     for         { TokenFor _ }
     ';'         { TokenSemiColon _ }
     col         { TokenCol _ }
     row         { TokenRow _ }
 
-
+%right input
 %left arr
 %right let
 %right in
-%right Cell
 %nonassoc if then else for
 %nonassoc col row
 %nonassoc '<' '>' '<=' '>='
@@ -82,7 +84,7 @@ import TileTokens
 %left ','
 %nonassoc x y int var true false '(' ')' '[' ']' '.' ';'
 %left lam
-%left APP
+%left APP Cell
 
 
 %% 
@@ -127,6 +129,7 @@ Exp : x                                         { TmX }
 
     | for '(' Exp ';' col ',' row ')' Exp       { TmFor $3 $9 }
 
+    | input '(' Exp ')'                         { TmInp $3 }
 
 Type : Bool                     { TyBool } 
      | Axis                     { TyAxis }
@@ -136,14 +139,14 @@ Type : Bool                     { TyBool }
      | Type arr Type            { TyFun $1 $3 }
      | Cell Type                { TyCell $2 }
      | Type ',' Type            { TyComma $1 $3 }
-
+     | File                     { TyFile }
 
 { 
 parseError :: [TileToken] -> a
 parseError [] = error "Unknown Parse Error" 
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
-data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType
+data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType | TyFile
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
@@ -170,6 +173,8 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | Cl String TileType Expr Environment
 
             | TmFor Expr Expr
+            | TmInp Expr
+            | TmFile String
     deriving (Show,Eq)
 }
 

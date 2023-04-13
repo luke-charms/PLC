@@ -20,6 +20,7 @@ main' = do putStrLn "Tile Interactive Mode - enter an expression : "
            putStrLn ("Evaluates to " ++ "\n" ++ unparse result ++ "\n")
            main'
 
+
 noParse :: ErrorCall -> IO ()
 noParse e = do let err =  show e
                putStrLn "----------------"

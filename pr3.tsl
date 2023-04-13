@@ -1,0 +1,12 @@
+
+
+
+
+let (foo:Tile) = (input (tile4)) in
+
+let (base:Tile) =
+combineH (combineV (foo) (blank 3)) (combine (reflect y foo) (blank 3) (reflect x foo) (reflect x (reflect y (foo)))) in
+
+repeatV 30 (repeatH 10 (combineH (base) (reflect x base)))
+
+

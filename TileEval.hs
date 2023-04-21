@@ -280,7 +280,11 @@ showTile n tile = displayTile $ makeTile n (concat $ tileExprToInt tile)
 
 -- Converts tile matrix to "outputable" String
 displayTile :: [[Int]] -> String
-displayTile tile = unlines $ map (unwords . map show) tile
+displayTile tile = trim $ unlines $ map (unwords . map show) tile
+
+trim :: String -> String
+trim [] = []
+trim (x:xs) = if x == ' ' then trim xs else x : trim xs
 
 -------------------------------------------
 --  CONVERSION BETWEEN EXPR and [[INT]]  --

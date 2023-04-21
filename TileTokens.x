@@ -3,18 +3,13 @@ module TileTokens where
 }
 
 %wrapper "posn" 
-$digit = 0-9     
--- digits 
-$alpha = [a-zA-Z]    
--- alphabetic characters
+$digit = 0-9      -- digits 
+$alpha = [a-zA-Z] -- alphabetic characters
 
 tokens :-
   $white+        ; 
   "--".*         ;
 
-  .tl            { tok (\p s -> TokenInpFile p) }
-  "->"           { tok (\p s -> TokenTypeArr p) }
-  \,             { tok (\p s -> TokenComma p) }
   $digit+        { tok (\p s -> TokenInt p (read s)) }
   x              { tok (\p s -> TokenXAxis p) }
   y              { tok (\p s -> TokenYAxis p) }
@@ -28,6 +23,7 @@ tokens :-
   \>=            { tok (\p s -> TokenMoreThanEqual p) }
   \+             { tok (\p s -> TokenPlus p) }
   \-             { tok (\p s -> TokenMinus p) }
+  \,             { tok (\p s -> TokenComma p) }
   if             { tok (\p s -> TokenIf p) }
   then           { tok (\p s -> TokenThen p) }
   else           { tok (\p s -> TokenElse p) }
@@ -46,46 +42,44 @@ tokens :-
   repeatH        { tok (\p s -> TokenRepeatH p) }
   repeatV        { tok (\p s -> TokenRepeatV p) }
   replace        { tok (\p s -> TokenReplace p) }
+  length         { tok (\p s -> TokenLength p) }
 
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
-  Blank          { tok (\p s -> TokenTypeBlank p) }
   Cell           { tok (\p s -> TokenTypeCell p) }
   Bool           { tok (\p s -> TokenTypeBool p)} 
   Axis           { tok (\p s -> TokenTypeAxis p) }
   File           { tok (\p s -> TokenTypeFile p) }
 
-  length         { tok (\p s -> TokenLength p) }
   \:             { tok (\p s -> TokenHasType p) }
   let            { tok (\p s -> TokenLet p ) }
   =              { tok (\p s -> TokenEq p ) }
   in             { tok (\p s -> TokenIn p ) }
 
-  \\             { tok (\p s -> TokenLambda p) }
   \(             { tok (\p s -> TokenLParen p) }
   \)             { tok (\p s -> TokenRParen p) }
   \[             { tok (\p s -> TokenLSquBracket p) }
   \]             { tok (\p s -> TokenRSquBracket p) }
-  $alpha [$alpha $digit \_ \’]*   { tok (\p s -> TokenVar p s) } 
 
   for            { tok (\p s -> TokenFor p) }
   \;             { tok (\p s -> TokenSemiColon p) }
   col            { tok (\p s -> TokenCol p) }
   row            { tok (\p s -> TokenRow p) }
 
+  $alpha [$alpha $digit \_ \’]*   { tok (\p s -> TokenVar p s) } 
+
 { 
--- Each action has type :: AlexPosn -> String -> MDLToken 
 
 -- Helper function
 tok f p s = f p s
 
--- The token type: 
+-- The type of the token: 
 data TileToken = 
-  TokenInpFile AlexPosn          |
-  TokenTypeAxis AlexPosn         |
+
+  TokenInt AlexPosn Int          | 
+  TokenVar AlexPosn String       |
   TokenXAxis AlexPosn            |
   TokenYAxis AlexPosn            |
-  TokenTypeArr  AlexPosn         |
   TokenTile AlexPosn             |
   TokenBlank AlexPosn            |
   TokenTrue AlexPosn             |
@@ -96,6 +90,7 @@ data TileToken =
   TokenMoreThanEqual AlexPosn    |
   TokenPlus AlexPosn             |
   TokenMinus AlexPosn            |
+  TokenComma AlexPosn            |
   TokenIf AlexPosn               |
   TokenThen AlexPosn             |
   TokenElse AlexPosn             |
@@ -111,31 +106,27 @@ data TileToken =
   TokenCombine AlexPosn          |
   TokenCombineH AlexPosn         |
   TokenCombineV AlexPosn         |
-
   TokenRepeatH AlexPosn          |
   TokenRepeatV AlexPosn          |
   TokenReplace AlexPosn          |
+  TokenLength AlexPosn           |
 
-  TokenTypeBool AlexPosn         | 
   TokenTypeInt  AlexPosn         | 
+  TokenTypeBool AlexPosn         | 
   TokenTypeTile AlexPosn         |
-  TokenTypeBlank AlexPosn        |
-  TokenInt AlexPosn Int          | 
   TokenTypeCell AlexPosn         |
+  TokenTypeAxis AlexPosn         |
   TokenTypeFile AlexPosn         |
 
-  TokenLength AlexPosn           |
-  TokenLambda AlexPosn           |
   TokenHasType AlexPosn          |
   TokenLet AlexPosn              |
   TokenEq AlexPosn               |
   TokenIn AlexPosn               |
+
   TokenLParen AlexPosn           |
   TokenRParen AlexPosn           |
   TokenLSquBracket AlexPosn      |
   TokenRSquBracket AlexPosn      |
-  TokenComma AlexPosn            |
-  TokenVar AlexPosn String       |
 
   TokenFor AlexPosn              |
   TokenSemiColon AlexPosn        |
@@ -145,11 +136,11 @@ data TileToken =
 
 
 tokenPosn :: TileToken -> String
-tokenPosn (TokenInpFile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenTypeAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenInt  (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenVar (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
+
 tokenPosn (TokenXAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenYAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenTypeArr  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTrue  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -160,6 +151,7 @@ tokenPosn (TokenLessThanEqual  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenMoreThanEqual  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenPlus  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenMinus  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenComma (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenIf (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenThen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenElse (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -178,31 +170,27 @@ tokenPosn (TokenCombineV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatH (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenReplace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLength (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
+tokenPosn (TokenTypeAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeBool (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeTile  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenTypeBlank (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenInt  (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeCell (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeFile (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
-tokenPosn (TokenLength (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenLambda (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenHasType (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLet (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenEq  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenIn  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+
 tokenPosn (TokenLParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenComma (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenVar (AlexPn a l c) _) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenSemiColon (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCol (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-
 }

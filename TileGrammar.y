@@ -10,12 +10,10 @@ import TileTokens
     Axis        { TokenTypeAxis _ }
     Int         { TokenTypeInt _ } 
     Tile        { TokenTypeTile _ }
-    Blank       { TokenTypeBlank _ }
     Cell        { TokenTypeCell _ }
     Bool        { TokenTypeBool _ }
     File        { TokenTypeFile _ }
 
-    arr         { TokenTypeArr _ } 
     x           { TokenXAxis _ }
     y           { TokenYAxis _ }
     tile        { TokenTile _ }
@@ -28,9 +26,11 @@ import TileTokens
     '>='        { TokenMoreThanEqual _ }
     '+'         { TokenPlus _ }
     '-'         { TokenMinus _ }
+    ','         { TokenComma _ }
     if          { TokenIf _ }
     then        { TokenThen _ }
     else        { TokenElse _ }
+    input       { TokenInput _ }
 
     reflect     { TokenReflect _ }
     rotate      { TokenRotate _ }
@@ -45,46 +45,42 @@ import TileTokens
     repeatH     { TokenRepeatH _ }
     repeatV     { TokenRepeatV _ }
     replace     { TokenReplace _ }
-
     length      { TokenLength _ }
-    lam         { TokenLambda _ }
+
     let         { TokenLet _ }
     ':'         { TokenHasType _ }
     '='         { TokenEq _ }
     in          { TokenIn _ }
+
     '('         { TokenLParen _ } 
     ')'         { TokenRParen _ } 
     '['         { TokenLSquBracket _ } 
     ']'         { TokenRSquBracket _ } 
-    ','         { TokenComma _ }
+
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
-
-    input       { TokenInput _ }
 
     for         { TokenFor _ }
     ';'         { TokenSemiColon _ }
     col         { TokenCol _ }
     row         { TokenRow _ }
 
+
 %right input
-%left arr
 %right let
 %right in
+%left Cell
+%left tile blank
 %nonassoc if then else for
 %nonassoc col row
+%left ','
+%nonassoc x y int true false '(' ')' '[' ']' ';'
 %nonassoc '<' '>' '<=' '>='
-%left '+' '-'
-%left tile blank
-%left repeatH repeatV
+%left '+' '-' 
+%left length
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
-%left combineH combineV
-%left length
-%left ','
-%nonassoc x y int var true false '(' ')' '[' ']' '.' ';'
-%left lam
-%left APP Cell
+%left repeatH repeatV combineH combineV
 
 
 %% 
@@ -102,6 +98,7 @@ Exp : x                                         { TmX }
     | Exp '>=' Exp                              { TmMoreThanEqual $1 $3 } 
     | Exp '+' Exp                               { TmAdd $1 $3 }
     | Exp '-' Exp                               { TmMinus $1 $3 }
+    | input '(' Exp ')'                         { TmInp $3 }
 
     | reflect Exp Exp                           { TmReflect $2 $3 }
     | rotate Exp Exp                            { TmRotate $2 $3 }
@@ -117,42 +114,38 @@ Exp : x                                         { TmX }
     | repeatH Exp Exp                           { TmRepeatH $2 $3 }
     | repeatV Exp Exp                           { TmRepeatV $2 $3 }
     | replace '(' Exp ',' Exp ')' Exp Exp       { TmReplace $3 $5 $7 $8 }
+    | length Exp                                { TmLength $2 }
+    | for '(' Exp ';' col ',' row ')' Exp       { TmFor $3 $9 }
 
     | if Exp then Exp else Exp                  { TmIf $2 $4 $6 } 
-    | length Exp                                { TmLength $2 }
-    | lam '(' var ':' Type ')' Exp              { TmLambda $3 $5 $7 }
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
-    | Exp Exp %prec APP                         { TmApp $1 $2 } 
     | '(' Exp ')'                               { $2 }
     | '[' Exp ']'                               { TmCell $2 }
     | Exp ',' Exp                               { TmComma $1 $3 }
 
-    | for '(' Exp ';' col ',' row ')' Exp       { TmFor $3 $9 }
-
-    | input '(' Exp ')'                         { TmInp $3 }
 
 Type : Bool                     { TyBool } 
      | Axis                     { TyAxis }
      | Int                      { TyInt }
      | Tile                     { TyTile }
-     | Blank                    { TyBlank }
-     | Type arr Type            { TyFun $1 $3 }
      | Cell Type                { TyCell $2 }
      | Type ',' Type            { TyComma $1 $3 }
      | File                     { TyFile }
+
 
 { 
 parseError :: [TileToken] -> a
 parseError [] = error "Unknown Parse Error" 
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
-data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType | TyFile
+data TileType = TyInt | TyBool | TyAxis | TyTile | TyCell TileType | TyComma TileType TileType | TyFile | TyFun TileType TileType
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
 
 data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse 
             | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
+            | TmInp Expr
             | TmLessThan Expr Expr | TmMoreThan Expr Expr 
             | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
             | TmAdd Expr Expr | TmMinus Expr Expr
@@ -167,14 +160,12 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmRepeatV Expr Expr
             | TmReplace Expr Expr Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
+            | TmFor Expr Expr
+
             | TmLength Expr | TmIf Expr Expr Expr 
             | TmVar String | TmLet String TileType Expr Expr
-            | TmLambda String TileType Expr | TmApp Expr Expr 
-            | Cl String TileType Expr Environment
-
-            | TmFor Expr Expr
-            | TmInp Expr
             | TmFile String
+
     deriving (Show,Eq)
 }
 

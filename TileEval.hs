@@ -1,24 +1,18 @@
--- Author: Julian Rathke, 2018
--- Provides a CEK implementation of the \Toy language from the lecture notes
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Redundant bracket" #-}
-{-# HLINT ignore "Use join" #-}
-{-# HLINT ignore "Use map once" #-}
 {-# HLINT ignore "Eta reduce" #-}
-{-# OPTIONS_GHC -Wno-overlapping-patterns #-}
 module TileEval where
 import TileGrammar
 import System.IO.Unsafe
 
 
---Data structures as defined in ToyGrammar:
+--Data structures as defined in TileGrammar:
 
---data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType | TyFile
-
+--data TileType = TyInt | TyBool | TyAxis | TyTile | TyCell TileType | TyComma TileType TileType | TyFile | TyFun TileType TileType
 --type Environment = [ (String,Expr) ]
-
 --data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse 
 --            | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
+--            | TmInp Expr
 --            | TmLessThan Expr Expr | TmMoreThan Expr Expr 
 --            | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
 --            | TmAdd Expr Expr | TmMinus Expr Expr
@@ -33,14 +27,12 @@ import System.IO.Unsafe
 --            | TmRepeatV Expr Expr
 --            | TmReplace Expr Expr Expr Expr
 --            | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
+--            | TmFor Expr Expr
+
 --            | TmLength Expr | TmIf Expr Expr Expr 
 --            | TmVar String | TmLet String TileType Expr Expr
---            | TmLambda String TileType Expr | TmApp Expr Expr 
---            | Cl String TileType Expr Environment
-
---            | TmFor Expr Expr
---            | TmInp Expr
 --            | TmFile String
+
 
 data Frame = HReflect Expr Environment | ReflectH Expr
            | HRotate Expr Environment | RotateH Expr
@@ -66,24 +58,23 @@ data Frame = HReflect Expr Environment | ReflectH Expr
            | HMinus Expr Environment | MinusH Expr
            | HIf Expr Expr Environment
            | HLet String TileType Expr Environment
-           | HApp Expr Environment | AppH Expr
-
            | HFor Expr Environment  | ForH Expr
            | InputH
+
 type Kontinuation = [ Frame ]
 type State = (Expr,Environment,Kontinuation)
 
 -- Function to unpack a closure to extract the underlying lambda term and environment
 unpack :: Expr -> Environment -> (Expr,Environment)
-unpack (Cl x t e env1) env2 = (TmLambda x t e , env1)
 unpack e env = (e,env)
 
 -- Look up a value in an environment and unpack it
 getValueBinding :: String -> Environment -> (Expr,Environment)
 getValueBinding x [] = error "Variable binding not found"
-getValueBinding x ((y,e):env) | x == y    = unpack e ((y,e):env)
+getValueBinding x ((y,e):env) | x == y    = (e,(y,e):env)
                               | otherwise = getValueBinding x env
 
+-- Updates environment with variable name and value
 update :: Environment -> String -> Expr -> Environment
 update env x e = (x,e) : env
 
@@ -97,7 +88,6 @@ isValue TmFalse = True
 isValue (TmTile _ _) = True
 isValue (TmBlank _) = True
 isValue (TmCell _) = True
-isValue (Cl {}) = True
 isValue _ = False
 
 --Small step evaluation function
@@ -258,14 +248,6 @@ eval1 (TmFalse,env1,(HIf e2 e3 env2):k) = (e3,env2,k)
 eval1 ((TmLet x typ e1 e2),env,k) = (e1,env,(HLet x typ e2 env):k)
 eval1 (v,env1,(HLet x typ e env2):k) | isValue v = (e, update env2 x v , k)
 
---  Rule to make closures from lambda abstractions.
-eval1 ((TmLambda x typ e),env,k) = ((Cl x typ e env), [], k)
-
--- Evaluation rules for application
-eval1 ((TmApp e1 e2),env,k) = (e1,env, (HApp e2 env) : k)
-eval1 (v,env1,(HApp e env2):k ) | isValue v = (e, env2, (AppH v) : k)
-eval1 (v,env1,(AppH (Cl x typ e env2) ) : k )  = (e, update env2 x v, k)
-
 -- Evaluation rules for 'for' operator
 eval1 ((TmFor e1 e2),env,k) = (e1,env, (HFor e2 env) : k)
 eval1 ((TmBlank n),env1,(HFor e2 env2) : k) = ((TmTile n (makeBlank n)),env1,(HFor e2 env2) : k)
@@ -293,8 +275,7 @@ unparse TmY         = "Y Axis"
 unparse (TmTrue) = "true"
 unparse (TmFalse) = "false"
 unparse (TmTile (TmInt n) tile) = showTile n tile
---unparse (TmBlank (TmInt n)) = showBlankTile n
-unparse (Cl {}) = "Function Value"
+unparse (TmBlank n) = showTile (tmInttoInt n) (makeBlank n)
 unparse _ = "Unknown"
 
 -- Function to evaluate int from a TmInt expression
@@ -311,7 +292,7 @@ showTile n tile = displayTile $ makeTile n (tileExprToInt tile)
 
 --change words and such ????
 displayTile :: [[Int]] -> String
-displayTile matrix = unlines $ map unwords $ map (map show) matrix
+displayTile matrix = unlines $ map (unwords . map show) matrix
 
 -------------------------------------------
 --  CONVERSION BETWEEN EXPR and [[INT]]  --

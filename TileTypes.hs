@@ -1,20 +1,16 @@
---Author: Julian Rathke, 2018 
---Provides an implementation of a type checker for the \Toy language from the lecture notes.
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Eta reduce" #-}
 module TileTypes where
 import TileGrammar
 import System.Directory
 import System.IO.Unsafe
 
---Data structures as defined in ToyGrammar:
 
---data TileType = TyInt | TyBool | TyAxis | TyTile | TyBlank | TyCell TileType | TyFun TileType TileType | TyComma TileType TileType | TyFile
+--Data structures as defined in TileGrammar:
 
+--data TileType = TyInt | TyBool | TyAxis | TyTile | TyCell TileType | TyComma TileType TileType | TyFile | TyFun TileType TileType
 --type Environment = [ (String,Expr) ]
-
 --data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse 
 --            | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
+--            | TmInp Expr
 --            | TmLessThan Expr Expr | TmMoreThan Expr Expr 
 --            | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
 --            | TmAdd Expr Expr | TmMinus Expr Expr
@@ -29,21 +25,17 @@ import System.IO.Unsafe
 --            | TmRepeatV Expr Expr
 --            | TmReplace Expr Expr Expr Expr
 --            | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
+--            | TmFor Expr Expr
+
 --            | TmLength Expr | TmIf Expr Expr Expr 
 --            | TmVar String | TmLet String TileType Expr Expr
---            | TmLambda String TileType Expr | TmApp Expr Expr 
---            | Cl String TileType Expr Environment
-
---            | TmFor Expr Expr
---            | TmInp Expr
 --            | TmFile String
 
 type TypeEnvironment = [ (String,TileType) ]
 
-
 getBinding :: String -> TypeEnvironment -> TileType
 getBinding x [] = error "Variable binding not found"
-getBinding x ((y,t):tenv) | x == y  = t
+getBinding x ((y,t):tenv) | x == y    = t
                           | otherwise = getBinding x tenv
 
 addBinding :: String -> TileType -> TypeEnvironment -> TypeEnvironment
@@ -117,14 +109,6 @@ typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
 
 typeOf tenv (TmVar x) = getBinding x tenv
 
-typeOf tenv (TmLambda x t e) = TyFun t u
-  where u = typeOf (addBinding x t tenv) e
-
-typeOf tenv (TmApp e1 e2) | t1 == t3 = t2
-  where ((t1,t2),t3) = (checkFun (typeOf tenv e1), typeOf tenv e2)
-        checkFun (TyFun t1 t2) = (t1,t2)
-        checkFun _ = error "Type Error"
-
 typeOf tenv (TmLet x t e1 e2) | t == t1 = typeOf (addBinding x t tenv) e2
   where t1 = typeOf tenv e1
 
@@ -143,30 +127,28 @@ unparseType TyInt = "Int"
 unparseType TyAxis = "Axis"
 unparseType TyBool = "Bool"
 unparseType TyTile = "Tile"
-unparseType TyBlank = "Blank Tile"
 unparseType (TyCell t1) = "Cell: [" ++ unparseType t1 ++ "]"
-unparseType (TyFun t1 t2) = unparseType t1 ++ " -> " ++ unparseType t2
 unparseType (TyComma t1 t2) = unparseType t1 ++ "," ++ unparseType t2
 unparseType TyFile = "FILE"
 
 ---------------------------------------
 
+-- Function to check tile has been input correctly (i.e. a N*N int matrix, with only 1s and 0s)
 tileCheck :: Expr -> Expr -> Bool
-tileCheck n tile = lengthCheck (tmInttoInt n) (tileExprToInt tile) && numCheck (tileExprToInt tile)
+tileCheck (TmInt n) tile = lengthCheck n (tileExprToInt tile) && numCheck (tileExprToInt tile)
 
+-- Checks to make sure tile is N*N matrix
 lengthCheck :: Int -> [Int] -> Bool
 lengthCheck n tile | length tile == n*n = True
                    | otherwise = False
 
+-- Checks to make sure only 1s and 0s are in tile matrix
 numCheck :: [Int] -> Bool
 numCheck [] = True
 numCheck (x:xs) | x == 0 || x == 1 = numCheck xs
-                    | otherwise = False
+                | otherwise = False
 
--- Function to evaluate int from a TmInt expression
-tmInttoInt :: Expr -> Int
-tmInttoInt (TmInt n) = n
-
+-- Converts the "tile" Expr to a matrix in order to properly check tile
 tileExprToInt :: Expr -> [Int]
 tileExprToInt (TmCell e1) = tileExprToInt e1
 tileExprToInt (TmComma e1 e2) = tileExprToInt e1 ++ tileExprToInt e2

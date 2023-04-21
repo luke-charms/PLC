@@ -64,11 +64,7 @@ data Frame = HReflect Expr Environment | ReflectH Expr
 type Kontinuation = [ Frame ]
 type State = (Expr,Environment,Kontinuation)
 
--- Function to unpack a closure to extract the underlying lambda term and environment
-unpack :: Expr -> Environment -> (Expr,Environment)
-unpack e env = (e,env)
-
--- Look up a value in an environment and unpack it
+-- Looks up a value in an environment and unpacks it
 getValueBinding :: String -> Environment -> (Expr,Environment)
 getValueBinding x [] = error "Variable binding not found"
 getValueBinding x ((y,e):env) | x == y    = (e,(y,e):env)
@@ -274,56 +270,44 @@ unparse TmX         = "X Axis"
 unparse TmY         = "Y Axis"
 unparse (TmTrue) = "true"
 unparse (TmFalse) = "false"
+unparse (TmBlank n) = unparse (TmTile n (makeBlank n))
 unparse (TmTile (TmInt n) tile) = showTile n tile
-unparse (TmBlank n) = showTile (tmInttoInt n) (makeBlank n)
 unparse _ = "Unknown"
-
--- Function to evaluate int from a TmInt expression
-tmInttoInt :: Expr -> Int
-tmInttoInt (TmInt n) = n
 
 -- Function to display a tile in output, as a string
 showTile :: Int -> Expr -> String
-showTile n tile = displayTile $ makeTile n (tileExprToInt tile)
+showTile n tile = displayTile $ makeTile n (concat $ tileExprToInt tile)
 
--- Function to display a blank tile of n 0's, as a string
--- showBlankTile :: Int -> String
--- showBlankTile n = displayTile $ makeBlankTile n
-
---change words and such ????
+-- Converts tile matrix to "outputable" String
 displayTile :: [[Int]] -> String
-displayTile matrix = unlines $ map (unwords . map show) matrix
+displayTile tile = unlines $ map (unwords . map show) tile
 
 -------------------------------------------
 --  CONVERSION BETWEEN EXPR and [[INT]]  --
 -------------------------------------------
 
+-- Converts the tile Expr to an array of Ints, each of size 1
 tileExprToInt :: Expr -> [[Int]]
 tileExprToInt (TmCell e1) = tileExprToInt e1
 tileExprToInt (TmComma e1 e2) = tileExprToInt e1 ++ tileExprToInt e2
 tileExprToInt (TmInt n) = [[n]]
 
---change words and such!!
-makeTile :: Int -> [[Int]] -> [[Int]]
-makeTile n xs = separate n $ concat xs
-  where separate _ [] = []
-        separate m ys = take m ys : separate m (drop m ys)
+-- Makes the tile into a N*N array
+makeTile :: Int -> [Int] -> [[Int]]
+makeTile _ [] = []
+makeTile n xs = take n xs : makeTile n (drop n xs)
 
+-- Constructs a blank tile of N*N 0s
 makeBlank :: Expr -> Expr
-makeBlank (TmInt n) = makeExpr n (makeBlankTile n)
+makeBlank (TmInt n) = makeExpr n (replicate n (replicate n 0))
 
-makeBlankTile :: Int -> [[Int]]
-makeBlankTile n = replicate n (replicate n 0)
+-- Unparses the tile from Expr form to matrix form
+unparseTile :: Int -> Expr -> [[Int]]
+unparseTile n tile = makeTile n (concat $ tileExprToInt tile)
 
-unparseTile :: Expr -> Expr -> [[Int]]
-unparseTile n tile = makeTile (read $ unparse n) (tileExprToInt tile)
-
-unparseTile' :: Int -> Expr -> [[Int]]
-unparseTile' n tile = makeTile n (tileExprToInt tile)
-
---change words and such!!
+-- Parses back the tile into Expr form from matrix form
 makeExpr :: Int -> [[Int]] -> Expr
-makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
+makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n (concat matrix)
   where makeTmInt n = TmInt n
         makeTmCell row = TmCell $ makeTmComma n $ map makeTmInt row
         makeTmComma n [x] = x
@@ -334,10 +318,10 @@ makeExpr n matrix = TmCell $ makeTmComma n $ map makeTmCell $ makeTile n matrix
 --------------------------------------
 
 reflectTileX :: Expr -> Expr -> Expr
-reflectTileX n tile = makeExpr (tmInttoInt n) (reflectX $ unparseTile n tile)
+reflectTileX (TmInt n) tile = makeExpr n (reflectX $ unparseTile n tile)
 
 reflectTileY :: Expr -> Expr -> Expr
-reflectTileY n tile = makeExpr (tmInttoInt n) (reflectY $ unparseTile n tile)
+reflectTileY (TmInt n) tile = makeExpr n (reflectY $ unparseTile n tile)
 
 reflectX :: [[Int]] -> [[Int]]
 reflectX = reverse
@@ -350,14 +334,13 @@ reflectY = map reverse
 --------------------------------------
 
 rotateTile :: Int -> Expr -> Expr -> Expr
-rotateTile x n tile = makeExpr (tmInttoInt n) (rotateTileInt x $ unparseTile n tile)
+rotateTile x (TmInt n) tile = makeExpr n (rotateTileInt x $ unparseTile n tile)
 
 rotateTileInt :: Int -> [[Int]] -> [[Int]]
 rotateTileInt n tile = iterate turn90 tile !! (4-n)
   where
     turn90 m = reverse (transpose m)
 
---change this to show less copied stuff
 transpose :: [[a]] -> [[a]]
 transpose [] = []
 transpose ([]:xs) = transpose xs
@@ -368,9 +351,8 @@ transpose ((x:xs):ys) = (x : [h | (h:_) <- ys]) : transpose (xs : [t | (_:t) <- 
 -----------------------------------
 
 scaleTile :: Int -> Expr -> Expr -> Expr
-scaleTile x n tile = makeExpr (tmInttoInt n) (scaleTileInt x $ unparseTile n tile)
+scaleTile x (TmInt n) tile = makeExpr n (scaleTileInt x $ unparseTile n tile)
 
---change this to show less copied stuff
 scaleTileInt :: Int -> [[Int]] -> [[Int]]
 scaleTileInt n matrix
     | n > 0     = concat [replicate n (concatMap (replicate n) row) | row <- matrix]
@@ -379,7 +361,7 @@ scaleTileInt n matrix
     where n' = abs n
 
 scaleInt :: Int -> Expr -> Expr
-scaleInt x n = TmInt (x * (tmInttoInt n))
+scaleInt x (TmInt n) = TmInt (x * n)
 
 -------------------------------------
 --         AND, NOT, OR            --
@@ -390,13 +372,13 @@ checkTileSize (TmInt x1) (TmInt x2) | x1 == x2  = True
                     | otherwise = False
 
 andTile :: Expr -> Expr -> Expr -> Expr
-andTile n tile1 tile2 = makeExpr (tmInttoInt n) (tileAnd (unparseTile n tile1) (unparseTile n tile2))
+andTile (TmInt n) tile1 tile2 = makeExpr n (tileAnd (unparseTile n tile1) (unparseTile n tile2))
 
 orTile :: Expr -> Expr -> Expr -> Expr
-orTile n tile1 tile2 = makeExpr (tmInttoInt n) (tileOr (unparseTile n tile1) (unparseTile n tile2))
+orTile (TmInt n) tile1 tile2 = makeExpr n (tileOr (unparseTile n tile1) (unparseTile n tile2))
 
 notTile :: Expr -> Expr -> Expr
-notTile n tile = makeExpr (tmInttoInt n) (tileNot (unparseTile n tile))
+notTile (TmInt n) tile = makeExpr n (tileNot (unparseTile n tile))
 
 tileAnd :: [[Int]] -> [[Int]] -> [[Int]]
 tileAnd a b = zipWith (zipWith (\x y -> if x == 1 && y == 1 then 1 else 0)) a b
@@ -412,7 +394,7 @@ tileNot = map (map (\x -> if x == 0 then 1 else 0))
 --------------------------------
 
 tileSub :: Expr -> Int -> Int -> Int -> Expr -> Expr
-tileSub n m x y tile = makeExpr m (getSubTile m x y (unparseTile n tile))
+tileSub (TmInt n) m x y tile = makeExpr m (getSubTile m x y (unparseTile n tile))
 
 getSubTile :: Int -> Int -> Int -> [[Int]] -> [[Int]]
 getSubTile m x y matrix
@@ -424,10 +406,11 @@ getSubTile m x y matrix
 --------------------------------
 
 combineSize :: Expr -> Expr -> Expr
-combineSize n1 n2 = (TmInt $ (tmInttoInt n1) + (tmInttoInt n2))
+combineSize (TmInt n1) (TmInt n2) = (TmInt $ n1 + n2)
 
 tileCombine :: Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr -> Expr
-tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4 = makeExpr ((tmInttoInt n1) + (tmInttoInt n2)) (getCombineTile (unparseTile n1 tile1) (unparseTile n2 tile2) (unparseTile n3 tile3) (unparseTile n4 tile4))
+tileCombine (TmInt n1) (TmInt n2) (TmInt n3) (TmInt n4) tile1 tile2 tile3 tile4 = 
+  makeExpr (n1 + n2) (getCombineTile (unparseTile n1 tile1) (unparseTile n2 tile2) (unparseTile n3 tile3) (unparseTile n4 tile4))
 
 getCombineTile :: [[Int]] -> [[Int]] -> [[Int]] -> [[Int]] -> [[Int]]
 getCombineTile tile1 tile2 tile3 tile4 =
@@ -437,13 +420,13 @@ getCombineTile tile1 tile2 tile3 tile4 =
   in topRows ++ bottomRows
 
 checkCombineSize :: Expr -> Expr -> Expr -> Expr -> Bool
-checkCombineSize n1 n2 n3 n4 = (tmInttoInt n1) == (tmInttoInt n2) && (tmInttoInt n3) == (tmInttoInt n4) && (tmInttoInt n1) == (tmInttoInt n3)
+checkCombineSize (TmInt n1) (TmInt n2) (TmInt n3) (TmInt n4) = n1 == n2 && n3 == n4 && n1 == n3
 
 combineTileH :: Int -> Expr -> Int -> Expr -> Expr
-combineTileH n1 tile1 n2 tile2 = makeExpr (n1+n2) (getCombineTileH (unparseTile' n1 tile1) (unparseTile' n2 tile2))
+combineTileH n1 tile1 n2 tile2 = makeExpr (n1+n2) (getCombineTileH (unparseTile n1 tile1) (unparseTile n2 tile2))
 
 combineTileV :: Int -> Expr -> Int -> Expr -> Expr
-combineTileV n1 tile1 n2 tile2 = makeExpr (n1) (getCombineTileV (unparseTile' n1 tile1) (unparseTile' n2 tile2))
+combineTileV n1 tile1 n2 tile2 = makeExpr (n1) (getCombineTileV (unparseTile n1 tile1) (unparseTile n2 tile2))
 
 getCombineTileH :: [[Int]] -> [[Int]] -> [[Int]]
 getCombineTileH tile1 tile2 = zipWith (++) tile1 tile2
@@ -459,10 +442,10 @@ checkCombineHV n1 n2 = n1 == n2
 -------------------------------
 
 repeatTileH :: Int -> Int -> Expr -> Expr
-repeatTileH x n tile = makeExpr (n*x) (getRepeatH x (unparseTile' n tile))
+repeatTileH x n tile = makeExpr (n*x) (getRepeatH x (unparseTile n tile))
 
 repeatTileV:: Int -> Int -> Expr -> Expr
-repeatTileV x n tile = makeExpr n (getRepeatV x (unparseTile' n tile))
+repeatTileV x n tile = makeExpr n (getRepeatV x (unparseTile n tile))
 
 getRepeatH :: Int -> [[Int]] -> [[Int]]
 getRepeatH x tile = map (concat . replicate x) tile
@@ -475,7 +458,7 @@ getRepeatV y tile = concat $ replicate y tile
 --------------------------------
 
 tileReplace :: Int -> Int -> Int -> Expr -> Int -> Expr -> Expr
-tileReplace x y m tile1 n tile2 = makeExpr n (getTileReplace x y (unparseTile' m tile1) (unparseTile' n tile2) )
+tileReplace x y m tile1 n tile2 = makeExpr n (getTileReplace x y (unparseTile m tile1) (unparseTile n tile2) )
 
 getTileReplace :: Int -> Int -> [[Int]] -> [[Int]] -> [[Int]]
 getTileReplace x y smallMatrix bigMatrix
@@ -489,7 +472,7 @@ getTileReplace x y smallMatrix bigMatrix
 ----------------------------
 
 forTile :: Expr -> Expr -> Expr ->  Expr
-forTile n tile func = makeExpr (tmInttoInt n) (getTileFor (unparseTile n tile) (funUnPack func) )
+forTile (TmInt n) tile func = makeExpr n (getTileFor (unparseTile n tile) (funUnPack func) )
 
 funUnPack :: Expr -> (Int -> Int)
 funUnPack func = undefined

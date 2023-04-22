@@ -1,6 +1,6 @@
 
 
-for (blank 64; row , col) (if col == odd then (take (row,col) input (tile 1)) else (take (row,col) input (tile 2)))
+for (blank 64) (if col == odd then (take (row,col) (input (tile1))) else (take (row,col) (input (tile2))))
 
 
 -- problem is might not take EVERY cell from input tiles; row/col will be out of index!

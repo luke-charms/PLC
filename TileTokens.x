@@ -43,6 +43,7 @@ tokens :-
   repeatV        { tok (\p s -> TokenRepeatV p) }
   replace        { tok (\p s -> TokenReplace p) }
   length         { tok (\p s -> TokenLength p) }
+  take           { tok (\p s -> TokenTake p) }
 
   Int            { tok (\p s -> TokenTypeInt p) }
   Tile           { tok (\p s -> TokenTypeTile p) }
@@ -55,6 +56,11 @@ tokens :-
   let            { tok (\p s -> TokenLet p ) }
   =              { tok (\p s -> TokenEq p ) }
   in             { tok (\p s -> TokenIn p ) }
+  \&\&           { tok (\p s -> TokenAndInt p ) }
+  \|\|           { tok (\p s -> TokenOrInt p ) }
+  \=\=           { tok (\p s -> TokenEqualsInt p ) }
+  odd            { tok (\p s -> TokenOdd p ) }
+  even           { tok (\p s -> TokenEven p ) }
 
   \(             { tok (\p s -> TokenLParen p) }
   \)             { tok (\p s -> TokenRParen p) }
@@ -110,6 +116,7 @@ data TileToken =
   TokenRepeatV AlexPosn          |
   TokenReplace AlexPosn          |
   TokenLength AlexPosn           |
+  TokenTake AlexPosn             |
 
   TokenTypeInt  AlexPosn         | 
   TokenTypeBool AlexPosn         | 
@@ -122,6 +129,11 @@ data TileToken =
   TokenLet AlexPosn              |
   TokenEq AlexPosn               |
   TokenIn AlexPosn               |
+  TokenAndInt AlexPosn           |
+  TokenOrInt AlexPosn            |
+  TokenEqualsInt AlexPosn        |
+  TokenOdd AlexPosn              |
+  TokenEven AlexPosn             |
 
   TokenLParen AlexPosn           |
   TokenRParen AlexPosn           |
@@ -171,6 +183,7 @@ tokenPosn (TokenRepeatH (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRepeatV (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenReplace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLength (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenTake (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenTypeAxis (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenTypeBool (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -183,6 +196,11 @@ tokenPosn (TokenHasType (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLet (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenEq  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenIn  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenAndInt (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenOrInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenEqualsInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenOdd  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenEven  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenLParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

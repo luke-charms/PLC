@@ -40,17 +40,23 @@ import TileTokens
     OR          { TokenOr _ }
     subtile     { TokenSubtile _ }
     combine     { TokenCombine _ }
-    combineH     { TokenCombineH _ }
-    combineV     { TokenCombineV _ }
+    combineH    { TokenCombineH _ }
+    combineV    { TokenCombineV _ }
     repeatH     { TokenRepeatH _ }
     repeatV     { TokenRepeatV _ }
     replace     { TokenReplace _ }
     length      { TokenLength _ }
+    take        { TokenTake _ }
 
     let         { TokenLet _ }
     ':'         { TokenHasType _ }
     '='         { TokenEq _ }
     in          { TokenIn _ }
+    '&&'        { TokenAndInt _ }
+    '||'        { TokenOrInt _ }
+    '=='        { TokenEqualsInt _ }
+    odd         { TokenOdd _ }
+    even        { TokenEven _ }
 
     '('         { TokenLParen _ } 
     ')'         { TokenRParen _ } 
@@ -72,12 +78,13 @@ import TileTokens
 %left Cell
 %left tile blank
 %nonassoc if then else for
-%nonassoc col row
+%nonassoc col row odd even
 %left ','
 %nonassoc x y int true false '(' ')' '[' ']' ';'
+%nonassoc '&&' '||' '=='
 %nonassoc '<' '>' '<=' '>='
 %left '+' '-' 
-%left length
+%left length take
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
 %left repeatH repeatV combineH combineV
@@ -90,6 +97,9 @@ Exp : x                                         { TmX }
     | var                                       { TmVar $1 }
     | true                                      { TmTrue }
     | false                                     { TmFalse } 
+    | odd                                       { TmOdd }
+    | even                                      { TmEven }
+
     | tile Exp Exp                              { TmTile $2 $3 }
     | blank Exp                                 { TmBlank $2 }
     | Exp '<' Exp                               { TmLessThan $1 $3 }
@@ -115,7 +125,14 @@ Exp : x                                         { TmX }
     | repeatV Exp Exp                           { TmRepeatV $2 $3 }
     | replace '(' Exp ',' Exp ')' Exp Exp       { TmReplace $3 $5 $7 $8 }
     | length Exp                                { TmLength $2 }
-    | for '(' Exp ';' col ',' row ')' Exp       { TmFor $3 $9 }
+    | take '(' Exp ',' Exp ')' Exp              { TmTake $3 $5 $7 }
+
+    | for '(' Exp ')' Exp                       { TmFor $3 $5 }
+    | col                                       { TmCol }
+    | row                                       { TmRow }
+    | Exp '&&' Exp                              { TmAndInt $1 $3 }
+    | Exp '||' Exp                              { TmOrInt $1 $3 }
+    | Exp '==' Exp                              { TmEqualsInt $1 $3 }
 
     | if Exp then Exp else Exp                  { TmIf $2 $4 $6 } 
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
@@ -145,7 +162,7 @@ type Environment = [ (String,Expr) ]
 
 data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse 
             | TmTile Expr Expr | TmBlank Expr | TmCell Expr | TmComma Expr Expr
-            | TmInp Expr
+            | TmInp Expr | TmOdd | TmEven
             | TmLessThan Expr Expr | TmMoreThan Expr Expr 
             | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
             | TmAdd Expr Expr | TmMinus Expr Expr
@@ -161,6 +178,10 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmReplace Expr Expr Expr Expr
             | TmAnd Expr Expr | TmNot Expr | TmOr Expr Expr
             | TmFor Expr Expr
+            | TmCol | TmRow
+            | TmAndInt Expr Expr | TmOrInt Expr Expr 
+            | TmEqualsInt Expr Expr
+            | TmTake Expr Expr Expr
 
             | TmLength Expr | TmIf Expr Expr Expr 
             | TmVar String | TmLet String TileType Expr Expr

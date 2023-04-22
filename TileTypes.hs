@@ -52,6 +52,14 @@ typeOf tenv TmTrue = TyBool
 
 typeOf tenv TmFalse = TyBool
 
+typeOf tenv TmCol = TyInt
+
+typeOf tenv TmRow = TyInt
+
+typeOf tenv TmOdd = TyInt
+
+typeOf tenv TmEven = TyInt
+
 typeOf tenv (TmCell e1) = TyCell t1
    where t1 = typeOf tenv e1
 
@@ -105,7 +113,15 @@ typeOf tenv (TmOr e1 e2) | (TyTile,TyTile) == (typeOf tenv e1, typeOf tenv e2) =
 typeOf tenv (TmIf e1 e2 e3) | t2 == t3 = t2
   where (TyBool,t2,t3) = (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3)
 
+typeOf tenv (TmAndInt e1 e2) | (TyBool,TyBool) == (typeOf tenv e1, typeOf tenv e2) = TyBool
+
+typeOf tenv (TmOrInt e1 e2) | (TyBool,TyBool) == (typeOf tenv e1, typeOf tenv e2) = TyBool
+
+typeOf tenv (TmEqualsInt e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyBool
+
 typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
+
+typeOf tenv (TmTake e1 e2 e3) | (TyInt,TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2, typeOf tenv e3) = TyTile
 
 typeOf tenv (TmVar x) = getBinding x tenv
 

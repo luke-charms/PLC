@@ -4,9 +4,12 @@
 
 -  repeatH and repeatV and combineH and combineV final output type checking ?!?
 
-- implement FOR loop or some sort of repetition for answering problem 1 ???
+-   implement FOR loop or some sort of repetition for answering problem 1 ???
 
 -  performUnsafeIO BIG PROBLEM????!!!!
+
+
+-  copied code looks a bit sus
 
 
 
@@ -39,3 +42,4 @@ for (int i = 0; i < length tile; i++;) {
 applyFuncTile (tile 2 [[0,1],[1,1]]; col,row) (if 0 then 1 else 0)
 
 
+----------------------------------------------------------------------

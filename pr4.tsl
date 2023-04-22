@@ -1,0 +1,14 @@
+
+
+
+for (blank (length (input tile 5)); row , col) 
+
+    (if ((row + col) < 50 && col < 25) then (take (row,col) (AND input (tile 5) (NOT input (tile 7)))) 
+
+    else if (row <= col && col >= 25)  then (take (row,col) (AND input (tile 6) (NOT input (tile 7))))
+
+    else take (row,col) blank (length tile 5))
+
+
+-- problem is SIZE of tiles may interfere with FOR loop
+

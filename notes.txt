@@ -1,18 +1,22 @@
 
 
- -  don't know if the extent to which the FRAME needs to be described??  (look at subtile for example)
-
 -  repeatH and repeatV and combineH and combineV final output type checking ?!?
 
--   implement FOR loop or some sort of repetition for answering problem 1 ???
-
 -  performUnsafeIO BIG PROBLEM????!!!!
-
 
 -  copied code looks a bit sus
 
 
-
+-  WRITE EVALUATION FOR:
+    - take __ __
+    - odd
+    - even
+    - col
+    - row
+    - '&&'
+    - '||'
+    - '=='
+    - for
 
 
 

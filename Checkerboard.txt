@@ -40,5 +40,23 @@ let (alternatingBoard:Function) = Function alternatingBoard(m: Int, n: Int, tile
     combineV (alternatingRow (n) (tile2) (tile1)) (alternatingBoard (m-1) (n) (tile1) (tile2))
   }
 }) in 
-let (output:Tile) = alternatingBoard(64, 64, inputTile1, inputTile2)
+alternatingBoard(64, 64, inputTile1, inputTile2)
+
+OR
+
+(\tile1 -> (\tile2 ->
+  let alternatingRow = \n -> if (n == 0)
+                                then blank tile1
+                                else if (n % 2 == 1)
+                                  then combineH tile1 (alternatingRow (n-1))
+                                  else combineH tile2 (alternatingRow (n-1))
+  in
+  let alternatingBoard = \m -> \n -> if (m == 0)
+                                        then blank tile1
+                                        else if (m % 2 == 1)
+                                          then combineV (alternatingRow n) (alternatingBoard (m-1) n)
+                                          else combineV (alternatingRow n) (alternatingBoard (m-1) n)
+  in
+  alternatingBoard 64 64
+)) inputTile1 inputTile2
 

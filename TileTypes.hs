@@ -135,13 +135,35 @@ typeOf tenv (TmInp (TmVar x)) = if unsafePerformIO $ doesFileExist (x ++ ".tl") 
 
 typeOf tenv (TmFile x) = TyFile
 
+typeOf tenv (TmFunc name args bodyType bodyExpr) =
+  let 
+    argList = flattenArgList args
+    updatedEnv = foldr (\(x, t) env -> addBinding x t env) tenv argList
+    checkedBodyType = typeOf updatedEnv bodyExpr
+    functionType = listToFuncType argList bodyType
+  in 
+    if checkedBodyType == bodyType
+     then functionType
+     else error "Function body has incorrect type"
+
 typeOf tenv _ = error "Type Error"
+
+flattenArgList :: FuncArg -> [(String, TileType)]
+flattenArgList (TyArg var ty) = [(var, ty)]
+flattenArgList (TyArgList var ty rest) = (var, ty) : flattenArgList rest
+
+
+listToFuncType :: [(String, TileType)] -> TileType -> TileType
+listToFuncType [] returnType = returnType
+listToFuncType [(arg, argType)] returnType = TyFun argType returnType
+listToFuncType ((arg, argType):xs) returnType = TyFun argType (listToFuncType xs returnType)
 
 -- Function for printing the results of the TypeCheck
 unparseType :: TileType -> String
 unparseType TyInt = "Int"
 unparseType TyAxis = "Axis"
 unparseType TyBool = "Bool"
+unparseType (TyFun t1 t2) = unparseType t1 ++ " -> " ++ unparseType t2
 unparseType TyTile = "Tile"
 unparseType (TyCell t1) = "Cell: [" ++ unparseType t1 ++ "]"
 unparseType (TyComma t1 t2) = unparseType t1 ++ "," ++ unparseType t2

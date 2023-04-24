@@ -28,6 +28,10 @@ tokens :-
   then           { tok (\p s -> TokenThen p) }
   else           { tok (\p s -> TokenElse p) }
   input          { tok (\p s -> TokenInput p) }
+  Lam            { \p s -> TokenLambda p }
+  "->"           { \p s -> TokenArrow p }
+  Function       { tok (\p s -> TokenFunction p) }
+  FuncApply      { tok (\p s -> TokenFuncApp p) }
 
   reflect        { tok (\p s -> TokenReflect p) }
   rotate         { tok (\p s -> TokenRotate p) }
@@ -66,6 +70,8 @@ tokens :-
   \)             { tok (\p s -> TokenRParen p) }
   \[             { tok (\p s -> TokenLSquBracket p) }
   \]             { tok (\p s -> TokenRSquBracket p) }
+  \{             { tok (\p s -> TokenLBrace p) }
+  \}             { tok (\p s -> TokenRBrace p) }
 
   for            { tok (\p s -> TokenFor p) }
   \;             { tok (\p s -> TokenSemiColon p) }
@@ -101,6 +107,8 @@ data TileToken =
   TokenThen AlexPosn             |
   TokenElse AlexPosn             |
   TokenInput AlexPosn            |
+  TokenLambda AlexPosn           |
+  TokenArrow AlexPosn            |
 
   TokenReflect AlexPosn          |
   TokenRotate AlexPosn           |
@@ -117,6 +125,9 @@ data TileToken =
   TokenReplace AlexPosn          |
   TokenLength AlexPosn           |
   TokenTake AlexPosn             |
+  TokenFunction AlexPosn         |
+  TokenFuncApp AlexPosn          |
+  
 
   TokenTypeInt  AlexPosn         | 
   TokenTypeBool AlexPosn         | 
@@ -139,6 +150,8 @@ data TileToken =
   TokenRParen AlexPosn           |
   TokenLSquBracket AlexPosn      |
   TokenRSquBracket AlexPosn      |
+  TokenLBrace AlexPosn           |
+  TokenRBrace AlexPosn           |
 
   TokenFor AlexPosn              |
   TokenSemiColon AlexPosn        |
@@ -168,6 +181,11 @@ tokenPosn (TokenIf (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenThen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenElse (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenInput (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLambda (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenArrow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenFunction (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenFuncApp (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+
 
 tokenPosn (TokenReflect (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRotate (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
@@ -206,6 +224,8 @@ tokenPosn (TokenLParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRParen (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenLBrace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenRBrace (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenSemiColon (AlexPn a l c)) = show(l) ++ ":" ++ show(c)

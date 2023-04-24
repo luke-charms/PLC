@@ -11,6 +11,7 @@ main = catch main' noParse
 
 main' = do putStrLn "Tile Interactive Mode - enter an expression : "
            sourceText <- getLine
+           putStrLn ("Lexed as " ++ show (alexScanTokens sourceText) ++ "\n")
            let parsedProg = parseCalc (alexScanTokens sourceText)
            putStrLn ("\n" ++ "Parsed as " ++ show parsedProg ++ "\n")
            putStrLn ("Type Checking : " ++ show parsedProg ++ "\n")

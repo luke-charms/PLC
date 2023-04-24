@@ -47,6 +47,8 @@ import TileTokens
     replace     { TokenReplace _ }
     length      { TokenLength _ }
     take        { TokenTake _ }
+    Function    { TokenFunction _ }
+    FuncApp     { TokenFuncApp _ }
 
     let         { TokenLet _ }
     ':'         { TokenHasType _ }
@@ -57,21 +59,24 @@ import TileTokens
     '=='        { TokenEqualsInt _ }
     odd         { TokenOdd _ }
     even        { TokenEven _ }
+    arr        { TokenArrow _ }
 
     '('         { TokenLParen _ } 
     ')'         { TokenRParen _ } 
     '['         { TokenLSquBracket _ } 
     ']'         { TokenRSquBracket _ } 
+    '{'         { TokenLBrace _ }
+    '}'         { TokenRBrace _ }
 
     int         { TokenInt _ $$ } 
     var         { TokenVar _ $$ }
 
     for         { TokenFor _ }
-    ';'         { TokenSemiColon _ }
+    -- ';'         { TokenSemiColon _ }
     col         { TokenCol _ }
     row         { TokenRow _ }
 
-
+%left arr
 %right input
 %right let
 %right in
@@ -88,6 +93,8 @@ import TileTokens
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
 %left repeatH repeatV combineH combineV
+%left Function
+%left FuncApp
 
 
 %% 
@@ -110,6 +117,9 @@ Exp : x                                         { TmX }
     | Exp '-' Exp                               { TmMinus $1 $3 }
     | input '(' Exp ')'                         { TmInp $3 }
 
+    | Function var '('ArgList')' ':' Type '{' Exp '}'
+                                                { TmFunc $2 $4 $7 $9 }
+    | FuncApp Exp '(' Exp ')'                   { TmFuncApp $2 $4 }
     | reflect Exp Exp                           { TmReflect $2 $3 }
     | rotate Exp Exp                            { TmRotate $2 $3 }
     | scale Exp Exp                             { TmScale $2 $3 }
@@ -140,14 +150,19 @@ Exp : x                                         { TmX }
     | '[' Exp ']'                               { TmCell $2 }
     | Exp ',' Exp                               { TmComma $1 $3 }
 
-
 Type : Bool                     { TyBool } 
      | Axis                     { TyAxis }
      | Int                      { TyInt }
      | Tile                     { TyTile }
      | Cell Type                { TyCell $2 }
      | Type ',' Type            { TyComma $1 $3 }
+     | Type arr Type            { TyFun $1 $3 } 
      | File                     { TyFile }
+
+ArgList : var ':' Type       { TyArg $1 $3}
+        | var ':' Type ',' ArgList { TyArgList $1 $3 $5}
+
+
 
 
 { 
@@ -156,6 +171,9 @@ parseError [] = error "Unknown Parse Error"
 parseError (t:ts) = error ("Parse error at line:column " ++ (tokenPosn t))
 
 data TileType = TyInt | TyBool | TyAxis | TyTile | TyCell TileType | TyComma TileType TileType | TyFile | TyFun TileType TileType
+   deriving (Show,Eq)
+
+data FuncArg = TyArg String TileType | TyArgList String TileType FuncArg
    deriving (Show,Eq)
 
 type Environment = [ (String,Expr) ]
@@ -182,9 +200,10 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmAndInt Expr Expr | TmOrInt Expr Expr 
             | TmEqualsInt Expr Expr
             | TmTake Expr Expr Expr
-
             | TmLength Expr | TmIf Expr Expr Expr 
             | TmVar String | TmLet String TileType Expr Expr
+            | TmFunc String FuncArg TileType Expr
+            | TmFuncApp Expr Expr
             | TmFile String
 
     deriving (Show,Eq)

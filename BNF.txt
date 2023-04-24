@@ -1,0 +1,7 @@
+T, U ::= Int | Bool | Axis | Tile | Cell Type | T -> T | T,T | File  
+
+E ::= n | true | false | x | y | E < E | E > E | E >= E | E <= E | odd | even | E + E | E - E | tile E E| if E then E else E | let (x:T) = E in E | E E | blank E | input (E) | reflect E E | rotate E E | scale E E | And E E | Or E E | Not E | subtile E (E,E) E | combine (E) (E) (E) (E) | combineH (E) (E) | combineV (E) (E) | repeatH (E) (E) | repeatV (E) (E)| replace (E,E) E E| length E | take (E,E) E | for (E) E | col | row | E && E | E || E | E == E | Function Name (ArgList) = E 
+
+ArgList ::= Arg ("," Arg)*
+Arg ::= Name ":" Type
+

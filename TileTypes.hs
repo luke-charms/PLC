@@ -84,6 +84,8 @@ typeOf tenv (TmAdd e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = 
 
 typeOf tenv (TmMinus e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
 
+typeOf tenv (TmMultiply e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
+
 typeOf tenv (TmReflect e1 e2) | (TyAxis,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
 typeOf tenv (TmRotate e1 e2) | (TyInt,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
@@ -118,6 +120,8 @@ typeOf tenv (TmAndInt e1 e2) | (TyBool,TyBool) == (typeOf tenv e1, typeOf tenv e
 typeOf tenv (TmOrInt e1 e2) | (TyBool,TyBool) == (typeOf tenv e1, typeOf tenv e2) = TyBool
 
 typeOf tenv (TmEqualsInt e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyBool
+
+typeOf tenv (TmModulo e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt
 
 typeOf tenv (TmLength e1) | TyTile == typeOf tenv e1 = TyInt
 

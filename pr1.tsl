@@ -1,6 +1,14 @@
 
 
-for (blank 64) (if col == odd then (take (row,col) (input (tile1))) else (take (row,col) (input (tile2))))
 
+for (blank 64) (if ((col == even) && (row == even))
+    then (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile1))) 
+    
+    else if ((col == odd) && (row == even))
+    then(take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile2)))
+    
+    else if ((col == even) && (row == odd))
+    then (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile2)))
+    
+    else (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile1))))
 
--- problem is might not take EVERY cell from input tiles; row/col will be out of index!

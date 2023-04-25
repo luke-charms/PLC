@@ -59,6 +59,7 @@ tokens :-
   \&\&           { tok (\p s -> TokenAndInt p ) }
   \|\|           { tok (\p s -> TokenOrInt p ) }
   \=\=           { tok (\p s -> TokenEqualsInt p ) }
+  \%\%           { tok (\p s -> TokenModulo p ) }
   odd            { tok (\p s -> TokenOdd p ) }
   even           { tok (\p s -> TokenEven p ) }
 
@@ -68,7 +69,7 @@ tokens :-
   \]             { tok (\p s -> TokenRSquBracket p) }
 
   for            { tok (\p s -> TokenFor p) }
-  \;             { tok (\p s -> TokenSemiColon p) }
+  \*             { tok (\p s -> TokenMultiply p) }
   col            { tok (\p s -> TokenCol p) }
   row            { tok (\p s -> TokenRow p) }
 
@@ -132,6 +133,7 @@ data TileToken =
   TokenAndInt AlexPosn           |
   TokenOrInt AlexPosn            |
   TokenEqualsInt AlexPosn        |
+  TokenModulo AlexPosn           |
   TokenOdd AlexPosn              |
   TokenEven AlexPosn             |
 
@@ -141,7 +143,7 @@ data TileToken =
   TokenRSquBracket AlexPosn      |
 
   TokenFor AlexPosn              |
-  TokenSemiColon AlexPosn        |
+  TokenMultiply AlexPosn        |
   TokenCol AlexPosn              |
   TokenRow AlexPosn
   deriving (Eq,Show) 
@@ -199,6 +201,7 @@ tokenPosn (TokenIn  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenAndInt (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenOrInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenEqualsInt  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenModulo  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenOdd  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenEven  (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
@@ -208,7 +211,7 @@ tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenSemiColon (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenMultiply (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCol (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 }

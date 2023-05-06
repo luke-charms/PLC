@@ -1,0 +1,43 @@
+
+
+
+
+let (one:Tile) = (input (tile5)) in
+
+let (two:Tile) = (input (tile6)) in
+
+
+let (topleft:Tile) = combineV (combineH (repeatH 2 (reflect x one)) (reflect x two)) (combineH (combineV (reflect x one) (two)) (scale 2 two)) in
+
+let (bottomleft:Tile) = combineH (combineV (reflect x two) (one)) (reflect x (scale 2 two)) in
+
+-- hello I am a comment
+
+let (topright:Tile) = combineH (repeatH 2 (reflect x (scale 2 two))) (combineV (reflect x two) (one)) in
+
+let (bottommiddle:Tile) = combineV (combineH (combineV (reflect x two) (one)) (reflect x (scale 2 two))) (combineH (repeatH 2 (one)) (two)) in
+
+let (bottomright:Tile) = combineV (repeatH 2 one) (scale 2 two) in
+
+
+let (refbottomleft:Tile) = combineV (repeatH 2 one) (scale 2 two) in
+
+let (refbottommiddle:Tile) = combineV (combineH (reflect x (scale 2 two)) (combineV (reflect x two) (one)) ) (combineH (two) (repeatH 2 (one))) in
+
+let (reftopleft:Tile) = combineH (combineV (reflect x two) (one)) (repeatH 2 (reflect x (scale 2 two)))  in
+
+let (refbottomright:Tile) = combineH (reflect x (scale 2 two)) (combineV (reflect x two) (one))  in
+
+let (reftopright:Tile) = combineV (combineH (reflect x two) (repeatH 2 (reflect x one))) (combineH (scale 2 two) (combineV (reflect x one) (two))) in
+
+
+
+let (smallbaseleft:Tile) = combineH (combineV (topleft) (bottomleft)) (combineV (topright) (combineH (bottommiddle) (bottomright))) in
+
+let (smallbaseright:Tile) = combineH (combineV (reftopleft) (combineH (refbottomleft) (refbottommiddle))) (combineV (reftopright) (refbottomright))  in
+
+
+
+let (bigbase:Tile) = combineH (combineV (smallbaseleft) (reflect x smallbaseleft)) (combineV (smallbaseright) (reflect x smallbaseright)) in
+
+repeatV 4 (combineH (repeatH 2 bigbase) (combineV (smallbaseleft) (reflect x smallbaseleft)))

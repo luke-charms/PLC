@@ -1,0 +1,24 @@
+
+let (size:Int) = (length (input (tile2))) in
+
+(reflect x (
+
+for (blank 60) (if ((col == 59) && (row == 0)) || ((col == 58) && (row == 0)) || ((col == 59) && (row == 1))
+
+    then (blank size)
+
+    else if ((col == 0) && (row == 59)) || ((col == 0) && (row == 58)) || ((col == 1) && (row == 59))
+
+    then (blank size)
+
+    else if ((col + row) %% 3 == 0)
+
+    then (input (tile3))
+
+    else if ((col + row) %% 3 == 1)
+
+    then (input (tile1))
+
+    else (input (tile2)))
+))
+

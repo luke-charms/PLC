@@ -4,9 +4,12 @@
 
 let (foo:Tile) = (input (tile4)) in
 
-let (base:Tile) =
-combineH (combineV (foo) (blank 3)) (combine (reflect y foo) (blank 3) (reflect x foo) (reflect x (reflect y (foo)))) in
+let (size:Int) = (length foo) in
+
+let (base:Tile) = combineH (combineV (foo) (blank size)) 
+                (combine (reflect y foo) (blank (length foo)) (reflect x foo) (reflect x (reflect y (foo)))) in
 
 repeatV 30 (repeatH 10 (combineH (base) (reflect x base)))
+
 
 

@@ -7,19 +7,6 @@
 -  copied code looks a bit sus
 
 
--  WRITE EVALUATION FOR:
-    - take __ __
-    - odd
-    - even
-    - col
-    - row
-    - '&&'
-    - '||'
-    - '=='
-    - for
-
-
-
 ----------------------------------------------------------------------
 
 
@@ -32,18 +19,3 @@
 --eval1 ((TmTile n4 tile4),env,(CombineHHH (TmTile n1 tile1) (TmTile n2 tile2) (TmTile n3 tile3)):k)
 --    | checkCombineSize n1 n2 n3 n4 = (TmTile (combineSize n1 n2) (tileCombine n1 n2 n3 n4 tile1 tile2 tile3 tile4),env,k)
 --    | otherwise = error "Combine does not produce a N*N tile!"
-
-
-----------------------------------------------------------------------
-
-
-for (int i = 0; i < length tile; i++;) {
-    tile[i] = row
-    for ()
-}
-
-
-applyFuncTile (tile 2 [[0,1],[1,1]]; col,row) (if 0 then 1 else 0)
-
-
-----------------------------------------------------------------------

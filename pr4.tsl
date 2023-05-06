@@ -1,15 +1,12 @@
 
 
-
-for (blank (length (input (tile5)) ))
+ for (blank 50)
 
     (if ((row + col) < 50 && col < 25) then (AND (input (tile5)) (NOT (input (tile7))))
 
     else if (row <= col && col >= 25)  then (AND (input (tile6)) (NOT (input (tile7))))
 
-    else blank (length (input (tile5))))
+    else (blank (length (input (tile5)))))
 
 
--- problem is SIZE of tiles may interfere with FOR loop
---      --> measure size of output tiles?????  i.e. 3N*3N tiles
 

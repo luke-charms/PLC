@@ -55,6 +55,7 @@ import TileTokens
     '&&'        { TokenAndInt _ }
     '||'        { TokenOrInt _ }
     '=='        { TokenEqualsInt _ }
+    '%%'        { TokenModulo _ }
     odd         { TokenOdd _ }
     even        { TokenEven _ }
 
@@ -67,12 +68,13 @@ import TileTokens
     var         { TokenVar _ $$ }
 
     for         { TokenFor _ }
-    ';'         { TokenSemiColon _ }
+    '/'         { TokenDir _ }
     col         { TokenCol _ }
     row         { TokenRow _ }
 
 
 %right input
+%left '/'
 %right let
 %right in
 %left Cell
@@ -80,10 +82,10 @@ import TileTokens
 %nonassoc if then else for
 %nonassoc col row odd even
 %left ','
-%nonassoc x y int true false '(' ')' '[' ']' ';'
-%nonassoc '&&' '||' '=='
-%nonassoc '<' '>' '<=' '>='
-%left '+' '-' 
+%nonassoc x y int true false '(' ')' '[' ']'
+%left '&&' '||' '==' '%%'
+%left '<' '>' '<=' '>='
+%left '+' '-'
 %left length take
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
@@ -109,6 +111,7 @@ Exp : x                                         { TmX }
     | Exp '+' Exp                               { TmAdd $1 $3 }
     | Exp '-' Exp                               { TmMinus $1 $3 }
     | input '(' Exp ')'                         { TmInp $3 }
+    | Exp '/' Exp                               { TmDir $1 $3 }
 
     | reflect Exp Exp                           { TmReflect $2 $3 }
     | rotate Exp Exp                            { TmRotate $2 $3 }
@@ -133,6 +136,8 @@ Exp : x                                         { TmX }
     | Exp '&&' Exp                              { TmAndInt $1 $3 }
     | Exp '||' Exp                              { TmOrInt $1 $3 }
     | Exp '==' Exp                              { TmEqualsInt $1 $3 }
+    | Exp '%%' Exp                              { TmModulo $1 $3 }
+
 
     | if Exp then Exp else Exp                  { TmIf $2 $4 $6 } 
     | let '(' var ':' Type ')' '=' Exp in Exp   { TmLet $3 $5 $8 $10 }
@@ -165,7 +170,7 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmInp Expr | TmOdd | TmEven
             | TmLessThan Expr Expr | TmMoreThan Expr Expr 
             | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
-            | TmAdd Expr Expr | TmMinus Expr Expr
+            | TmAdd Expr Expr | TmMinus Expr Expr | TmDir Expr Expr
             | TmReflect Expr Expr 
             | TmRotate Expr Expr
             | TmScale Expr Expr
@@ -180,7 +185,7 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmFor Expr Expr
             | TmCol | TmRow
             | TmAndInt Expr Expr | TmOrInt Expr Expr 
-            | TmEqualsInt Expr Expr
+            | TmEqualsInt Expr Expr | TmModulo Expr Expr
             | TmTake Expr Expr Expr
 
             | TmLength Expr | TmIf Expr Expr Expr 

@@ -69,7 +69,7 @@ tokens :-
   \]             { tok (\p s -> TokenRSquBracket p) }
 
   for            { tok (\p s -> TokenFor p) }
-  \*             { tok (\p s -> TokenMultiply p) }
+  \/             { tok (\p s -> TokenDir p) }
   col            { tok (\p s -> TokenCol p) }
   row            { tok (\p s -> TokenRow p) }
 
@@ -143,7 +143,7 @@ data TileToken =
   TokenRSquBracket AlexPosn      |
 
   TokenFor AlexPosn              |
-  TokenMultiply AlexPosn        |
+  TokenDir AlexPosn              |
   TokenCol AlexPosn              |
   TokenRow AlexPosn
   deriving (Eq,Show) 
@@ -211,7 +211,7 @@ tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenMultiply (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenDir (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCol (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 }

@@ -1,8 +1,5 @@
 module TileTypes where
 import TileGrammar
-import System.Directory
-import System.IO.Unsafe
-
 
 --Data structures as defined in TileGrammar:
 
@@ -84,7 +81,7 @@ typeOf tenv (TmAdd e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = 
 
 typeOf tenv (TmMinus e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
 
-typeOf tenv (TmMultiply e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
+typeOf tenv (TmDir e1 e2) | (TyInt,TyInt) == (typeOf tenv e1, typeOf tenv e2) = TyInt 
 
 typeOf tenv (TmReflect e1 e2) | (TyAxis,TyTile) == (typeOf tenv e1, typeOf tenv e2) = TyTile
 
@@ -135,7 +132,9 @@ typeOf tenv (TmLet x t e1 e2) | t == t1 = typeOf (addBinding x t tenv) e2
 typeOf tenv (TmFor e1 e2) | (TyTile,t1) == (typeOf tenv e1,t1) = TyTile
   where t1 = typeOf tenv e2
 
-typeOf tenv (TmInp (TmVar x)) = if unsafePerformIO $ doesFileExist (x ++ ".tl") then TyTile else error "Invalid File Input!"
+typeOf tenv (TmInp (TmVar x)) = TyTile
+
+typeOf tenv (TmInp (TmDir e1 e2)) = typeOf tenv (TmInp e2)
 
 typeOf tenv (TmFile x) = TyFile
 

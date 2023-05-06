@@ -1,0 +1,207 @@
+
+
+let (one:Tile) = (input (tile4)) in 
+
+let (hundred:Tile) = scale 100 one in 
+
+let (ninetyeight:Tile) = combineV (repeatV 2 (repeatH 100 (blank 2))) (combineH (repeatH 2 (repeatV 98 (blank 2))) (scale 98 one)) in 
+
+let (ninetysix:Tile) = combineV (repeatV 4 (repeatH 100 (blank 2))) (combineH (repeatH 4 (repeatV 96 (blank 2))) (scale 96 one)) in
+
+let (ninetyfour:Tile) = combineV (repeatV 6 (repeatH 100 (blank 2))) (combineH (repeatH 6 (repeatV 94 (blank 2))) (scale 94 one)) in 
+
+let (ninetytwo:Tile) = combineV (repeatV 8 (repeatH 100 (blank 2))) (combineH (repeatH 8 (repeatV 92 (blank 2))) (scale 92 one)) in 
+
+let (ninety:Tile) = combineV (repeatV 10 (repeatH 100 (blank 2))) (combineH (repeatH 10 (repeatV 90 (blank 2))) (scale 90 one)) in 
+
+let (eightyeight:Tile) = combineV (repeatV 12 (repeatH 100 (blank 2))) (combineH (repeatH 12 (repeatV 88 (blank 2))) (scale 88 one)) in 
+
+let (eightysix:Tile) = combineV (repeatV 14 (repeatH 100 (blank 2))) (combineH (repeatH 14 (repeatV 86 (blank 2))) (scale 86 one)) in 
+
+let (eightyfour:Tile) = combineV (repeatV 16 (repeatH 100 (blank 2))) (combineH (repeatH 16 (repeatV 84 (blank 2))) (scale 84 one)) in 
+
+let (eightytwo:Tile) = combineV (repeatV 18 (repeatH 100 (blank 2))) (combineH (repeatH 18 (repeatV 82 (blank 2))) (scale 82 one)) in 
+
+let (eighty:Tile) = combineV (repeatV 20 (repeatH 100 (blank 2))) (combineH (repeatH 20 (repeatV 80 (blank 2))) (scale 80 one)) in 
+
+let (seventyeight:Tile) = combineV (repeatV 22 (repeatH 100 (blank 2))) (combineH (repeatH 22 (repeatV 78 (blank 2))) (scale 78 one)) in 
+
+let (seventysix:Tile) = combineV (repeatV 24 (repeatH 100 (blank 2))) (combineH (repeatH 24 (repeatV 76 (blank 2))) (scale 76 one)) in 
+
+let (seventyfour:Tile) = combineV (repeatV 26 (repeatH 100 (blank 2))) (combineH (repeatH 26 (repeatV 74 (blank 2))) (scale 74 one)) in 
+
+let (seventytwo:Tile) = combineV (repeatV 28 (repeatH 100 (blank 2))) (combineH (repeatH 28 (repeatV 72 (blank 2))) (scale 72 one)) in 
+
+let (seventy:Tile) = combineV (repeatV 30 (repeatH 100 (blank 2))) (combineH (repeatH 30 (repeatV 70 (blank 2))) (scale 70 one)) in 
+
+let (sixtyeight:Tile) = combineV (repeatV 32 (repeatH 100 (blank 2))) (combineH (repeatH 32 (repeatV 68 (blank 2))) (scale 68 one)) in 
+
+let (sixtysix:Tile) = combineV (repeatV 34 (repeatH 100 (blank 2))) (combineH (repeatH 34 (repeatV 66 (blank 2))) (scale 66 one)) in 
+
+let (sixtyfour:Tile) = combineV (repeatV 36 (repeatH 100 (blank 2))) (combineH (repeatH 36 (repeatV 64 (blank 2))) (scale 64 one)) in 
+
+let (sixtytwo:Tile) = combineV (repeatV 38 (repeatH 100 (blank 2))) (combineH (repeatH 38 (repeatV 62 (blank 2))) (scale 62 one)) in 
+
+let (sixty:Tile) = combineV (repeatV 40 (repeatH 100 (blank 2))) (combineH (repeatH 40 (repeatV 60 (blank 2))) (scale 60 one)) in 
+
+let (fiftyeight:Tile) = combineV (repeatV 42 (repeatH 100 (blank 2))) (combineH (repeatH 42 (repeatV 58 (blank 2))) (scale 58 one)) in 
+
+let (fiftysix:Tile) = combineV (repeatV 44 (repeatH 100 (blank 2))) (combineH (repeatH 44 (repeatV 56 (blank 2))) (scale 56 one)) in 
+
+let (fiftyfour:Tile) = combineV (repeatV 46 (repeatH 100 (blank 2))) (combineH (repeatH 46 (repeatV 54 (blank 2))) (scale 54 one)) in 
+
+let (fiftytwo:Tile) = combineV (repeatV 48 (repeatH 100 (blank 2))) (combineH (repeatH 48 (repeatV 52 (blank 2))) (scale 52 one)) in 
+
+let (fifty:Tile) = combineV (repeatV 50 (repeatH 100 (blank 2))) (combineH (repeatH 50 (repeatV 50 (blank 2))) (scale 50 one)) in 
+
+let (fourtyeight:Tile) = combineV (repeatV 52 (repeatH 100 (blank 2))) (combineH (repeatH 52 (repeatV 48 (blank 2))) (scale 48 one)) in 
+
+let (fourtysix:Tile) = combineV (repeatV 54 (repeatH 100 (blank 2))) (combineH (repeatH 54 (repeatV 46 (blank 2))) (scale 46 one)) in 
+
+let (fourtyfour:Tile) = combineV (repeatV 56 (repeatH 100 (blank 2))) (combineH (repeatH 56 (repeatV 44 (blank 2))) (scale 44 one)) in 
+
+let (fourtytwo:Tile) = combineV (repeatV 58 (repeatH 100 (blank 2))) (combineH (repeatH 58 (repeatV 42 (blank 2))) (scale 42 one)) in 
+
+let (fourty:Tile) = combineV (repeatV 60 (repeatH 100 (blank 2))) (combineH (repeatH 60 (repeatV 40 (blank 2))) (scale 40 one)) in 
+
+let (thirtyeight:Tile) = combineV (repeatV 62 (repeatH 100 (blank 2))) (combineH (repeatH 62 (repeatV 38 (blank 2))) (scale 38 one)) in 
+
+let (thirtysix:Tile) = combineV (repeatV 64 (repeatH 100 (blank 2))) (combineH (repeatH 64 (repeatV 36 (blank 2))) (scale 36 one)) in 
+
+let (thirtyfour:Tile) = combineV (repeatV 66 (repeatH 100 (blank 2))) (combineH (repeatH 66 (repeatV 34 (blank 2))) (scale 34 one)) in 
+
+let (thirtytwo:Tile) = combineV (repeatV 68 (repeatH 100 (blank 2))) (combineH (repeatH 68 (repeatV 32 (blank 2))) (scale 32 one)) in 
+
+let (thirty:Tile) = combineV (repeatV 70 (repeatH 100 (blank 2))) (combineH (repeatH 70 (repeatV 30 (blank 2))) (scale 30 one)) in 
+
+let (twentyeight:Tile) = combineV (repeatV 72 (repeatH 100 (blank 2))) (combineH (repeatH 72 (repeatV 28 (blank 2))) (scale 28 one)) in 
+
+let (twentysix:Tile) = combineV (repeatV 74 (repeatH 100 (blank 2))) (combineH (repeatH 74 (repeatV 26 (blank 2))) (scale 26 one)) in 
+
+let (twentyfour:Tile) = combineV (repeatV 76 (repeatH 100 (blank 2))) (combineH (repeatH 76 (repeatV 24 (blank 2))) (scale 24 one)) in 
+
+let (twentytwo:Tile) = combineV (repeatV 78 (repeatH 100 (blank 2))) (combineH (repeatH 78 (repeatV 22 (blank 2))) (scale 22 one)) in 
+
+let (twenty:Tile) = combineV (repeatV 80 (repeatH 100 (blank 2))) (combineH (repeatH 80 (repeatV 20 (blank 2))) (scale 20 one)) in 
+
+let (eighteen:Tile) = combineV (repeatV 82 (repeatH 100 (blank 2))) (combineH (repeatH 82 (repeatV 18 (blank 2))) (scale 18 one)) in 
+
+let (sixteen:Tile) = combineV (repeatV 84 (repeatH 100 (blank 2))) (combineH (repeatH 84 (repeatV 16 (blank 2))) (scale 16 one)) in 
+
+let (fourteen:Tile) = combineV (repeatV 86 (repeatH 100 (blank 2))) (combineH (repeatH 86 (repeatV 14 (blank 2))) (scale 14 one)) in 
+
+let (twelve:Tile) = combineV (repeatV 88 (repeatH 100 (blank 2))) (combineH (repeatH 88 (repeatV 12 (blank 2))) (scale 12 one)) in 
+
+let (ten:Tile) = combineV (repeatV 90 (repeatH 100 (blank 2))) (combineH (repeatH 90 (repeatV 10 (blank 2))) (scale 10 one)) in 
+
+let (eight:Tile) = combineV (repeatV 92 (repeatH 100 (blank 2))) (combineH (repeatH 92 (repeatV 8 (blank 2))) (scale 8 one)) in 
+
+let (six:Tile) = combineV (repeatV 94 (repeatH 100 (blank 2))) (combineH (repeatH 94 (repeatV 6 (blank 2))) (scale 6 one)) in 
+
+let (four:Tile) = combineV (repeatV 96 (repeatH 100 (blank 2))) (combineH (repeatH 96 (repeatV 4 (blank 2))) (scale 4 one)) in 
+
+let (two:Tile) = combineV (repeatV 98 (repeatH 100 (blank 2))) (combineH (repeatH 98 (repeatV 2 (blank 2))) (scale 2 one)) in 
+
+
+let (xorzero:Tile) = AND (OR hundred ninetyeight) (NOT (AND hundred ninetyeight)) in
+
+let (xorone:Tile) = AND (OR xorzero ninetysix) (NOT (AND xorzero ninetysix)) in
+
+let (xortwo:Tile) = AND (OR xorone ninetyfour) (NOT (AND xorone ninetyfour)) in
+
+let (xorthree:Tile) = AND (OR xortwo ninetytwo) (NOT (AND xortwo ninetytwo)) in
+
+let (xorfour:Tile) = AND (OR xorthree ninety) (NOT (AND xorthree ninety)) in
+
+let (xorfive:Tile) = AND (OR xorfour eightyeight) (NOT (AND xorfour eightyeight)) in
+
+let (xorsix:Tile) = AND (OR xorfive eightysix) (NOT (AND xorfive eightysix)) in
+
+let (xorseven:Tile) = AND (OR xorsix eightyfour) (NOT (AND xorsix eightyfour)) in
+
+let (xoreight:Tile) = AND (OR xorseven eightytwo) (NOT (AND xorseven eightytwo)) in
+
+let (xornine:Tile) = AND (OR xoreight eighty) (NOT (AND xoreight eighty)) in
+
+let (xorten:Tile) = AND (OR xornine seventyeight) (NOT (AND xornine seventyeight)) in
+
+let (xoreleven:Tile) = AND (OR xorten seventysix) (NOT (AND xorten seventysix)) in
+
+let (xortwelve:Tile) = AND (OR xoreleven seventyfour) (NOT (AND xoreleven seventyfour)) in
+
+let (xorthirteen:Tile) = AND (OR xortwelve seventytwo) (NOT (AND xortwelve seventytwo)) in
+
+let (xorfourteen:Tile) = AND (OR xorthirteen seventy) (NOT (AND xorthirteen seventy)) in
+
+let (xorfifteen:Tile) = AND (OR xorfourteen sixtyeight) (NOT (AND xorfourteen sixtyeight)) in
+
+let (xorsixteen:Tile) = AND (OR xorfifteen sixtysix) (NOT (AND xorfifteen sixtysix)) in
+
+let (xorseventeen:Tile) = AND (OR xorsixteen sixtyfour) (NOT (AND xorsixteen sixtyfour)) in
+
+let (xoreighteen:Tile) = AND (OR xorseventeen sixtytwo) (NOT (AND xorseventeen sixtytwo)) in
+
+let (xornineteen:Tile) = AND (OR xoreighteen sixty) (NOT (AND xoreighteen sixty)) in
+
+let (xortwenty:Tile) = AND (OR xornineteen fiftyeight) (NOT (AND xornineteen fiftyeight)) in
+
+let (xortwentyone:Tile) = AND (OR xortwenty fiftysix) (NOT (AND xortwenty fiftysix)) in
+
+let (xortwentytwo:Tile) = AND (OR xortwentyone fiftyfour) (NOT (AND xortwentyone fiftyfour)) in
+
+let (xortwentythree:Tile) = AND (OR xortwentytwo fiftytwo) (NOT (AND xortwentytwo fiftytwo)) in
+
+let (xortwentyfour:Tile) = AND (OR xortwentythree fifty) (NOT (AND xortwentythree fifty)) in
+
+let (xortwentyfive:Tile) = AND (OR xortwentyfour fourtyeight) (NOT (AND xortwentyfour fourtyeight)) in
+
+let (xortwentysix:Tile) = AND (OR xortwentyfive fourtysix) (NOT (AND xortwentyfive fourtysix)) in
+
+let (xortwentyseven:Tile) = AND (OR xortwentysix fourtyfour) (NOT (AND xortwentysix fourtyfour)) in
+
+let (xortwentyeight:Tile) = AND (OR xortwentyseven fourtytwo) (NOT (AND xortwentyseven fourtytwo)) in
+
+let (xortwentynine:Tile) = AND (OR xortwentyeight fourty) (NOT (AND xortwentyeight fourty)) in
+
+let (xorthirty:Tile) = AND (OR xortwentynine thirtyeight) (NOT (AND xortwentynine thirtyeight)) in
+
+let (xorthirtyone:Tile) = AND (OR xorthirty thirtysix) (NOT (AND xorthirty thirtysix)) in
+
+let (xorthirtytwo:Tile) = AND (OR xorthirtyone thirtyfour) (NOT (AND xorthirtyone thirtyfour)) in
+
+let (xorthirtythree:Tile) = AND (OR xorthirtytwo thirtytwo) (NOT (AND xorthirtytwo thirtytwo)) in
+
+let (xorthirtyfour:Tile) = AND (OR xorthirtythree thirty) (NOT (AND xorthirtythree thirty)) in
+
+let (xorthirtyfive:Tile) = AND (OR xorthirtyfour twentyeight) (NOT (AND xorthirtyfour twentyeight)) in
+
+let (xorthirtysix:Tile) = AND (OR xorthirtyfive twentysix) (NOT (AND xorthirtyfive twentysix)) in
+
+let (xorthirtyseven:Tile) = AND (OR xorthirtysix twentyfour) (NOT (AND xorthirtysix twentyfour)) in
+
+let (xorthirtyeight:Tile) = AND (OR xorthirtyseven twentytwo) (NOT (AND xorthirtyseven twentytwo)) in
+
+let (xorthirtynine:Tile) = AND (OR xorthirtyeight twenty) (NOT (AND xorthirtyeight twenty)) in
+
+let (xorfourty:Tile) = AND (OR xorthirtynine eighteen) (NOT (AND xorthirtynine eighteen)) in
+
+let (xorfourtyone:Tile) = AND (OR xorfourty sixteen) (NOT (AND xorfourty sixteen)) in
+
+let (xorfourtytwo:Tile) = AND (OR xorfourtyone fourteen) (NOT (AND xorfourtyone fourteen)) in
+
+let (xorfourtythree:Tile) = AND (OR xorfourtytwo twelve) (NOT (AND xorfourtytwo twelve)) in
+
+let (xorfourtyfour:Tile) = AND (OR xorfourtythree ten) (NOT (AND xorfourtythree ten)) in
+
+let (xorfourtyfive:Tile) = AND (OR xorfourtyfour eight) (NOT (AND xorfourtyfour eight)) in
+
+let (xorfourtysix:Tile) = AND (OR xorfourtyfive six) (NOT (AND xorfourtyfive six)) in
+
+let (xorfourtyseven:Tile) = AND (OR xorfourtysix four) (NOT (AND xorfourtysix four)) in
+
+let (xor:Tile) = AND (OR xorfourtyseven two) (NOT (AND xorfourtyseven two)) in
+
+
+
+combine (xor) (reflect y xor) (reflect x xor) (reflect x (reflect y xor))
+

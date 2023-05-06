@@ -527,7 +527,7 @@ alex_base = listArray (0 :: Int, 160)
   , 4929
   , 5004
   , 0
-  , 6
+  , 2
   , 5117
   , 4964
   , 0
@@ -563,7 +563,7 @@ alex_base = listArray (0 :: Int, 160)
   , 7634
   , 7721
   , 7796
-  , -117
+  , -112
   , 0
   , 7880
   , 7757
@@ -581,12 +581,12 @@ alex_base = listArray (0 :: Int, 160)
   , 8993
   , 9068
   , 9155
-  , -49
-  , -48
+  , -44
+  , -43
   , 0
   , 0
   , 0
-  , -25
+  , -26
   , 0
   , 9230
   , 9317
@@ -625,16 +625,16 @@ alex_table = listArray (0 :: Int, 11192)
   , 27
   , 30
   , 76
+  , 78
+  , 78
+  , 78
+  , 78
+  , 78
   , 85
   , 134
   , 135
-  , 0
-  , 78
-  , 78
-  , 78
-  , 78
-  , 78
   , 79
+  , 0
   , 0
   , 0
   , 0
@@ -648,12 +648,12 @@ alex_table = listArray (0 :: Int, 11192)
   , 0
   , 35
   , 36
-  , 40
+  , 78
   , 136
   , 138
   , 137
-  , 78
   , 0
+  , 40
   , 120
   , 120
   , 120
@@ -11822,16 +11822,16 @@ alex_check = listArray (0 :: Int, 11192)
   , 124
   , 37
   , 153
-  , 128
-  , 61
-  , 61
-  , -1
   , 9
   , 10
   , 11
   , 12
   , 13
+  , 128
+  , 61
+  , 61
   , 45
+  , -1
   , -1
   , -1
   , -1
@@ -11845,12 +11845,12 @@ alex_check = listArray (0 :: Int, 11192)
   , -1
   , 40
   , 41
-  , 42
+  , 32
   , 43
   , 44
   , 45
-  , 32
   , -1
+  , 47
   , 48
   , 49
   , 50
@@ -23549,7 +23549,7 @@ data TileToken =
   TokenRSquBracket AlexPosn      |
 
   TokenFor AlexPosn              |
-  TokenMultiply AlexPosn        |
+  TokenDir AlexPosn              |
   TokenCol AlexPosn              |
   TokenRow AlexPosn
   deriving (Eq,Show) 
@@ -23617,7 +23617,7 @@ tokenPosn (TokenLSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRSquBracket (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 
 tokenPosn (TokenFor (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
-tokenPosn (TokenMultiply (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
+tokenPosn (TokenDir (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenCol (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 tokenPosn (TokenRow (AlexPn a l c)) = show(l) ++ ":" ++ show(c)
 alex_action_2 = tok (\p s -> TokenInt p (read s))
@@ -23674,7 +23674,7 @@ alex_action_52 = tok (\p s -> TokenRParen p)
 alex_action_53 = tok (\p s -> TokenLSquBracket p)
 alex_action_54 = tok (\p s -> TokenRSquBracket p)
 alex_action_55 = tok (\p s -> TokenFor p)
-alex_action_56 = tok (\p s -> TokenMultiply p)
+alex_action_56 = tok (\p s -> TokenDir p)
 alex_action_57 = tok (\p s -> TokenCol p)
 alex_action_58 = tok (\p s -> TokenRow p)
 alex_action_59 = tok (\p s -> TokenVar p s)

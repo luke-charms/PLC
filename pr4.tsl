@@ -6,12 +6,7 @@
 
     else if (row <= col && col >= 25)  then (AND (input (tile6)) (NOT (input (tile7))))
 
-    else (blank 2))
+    else (blank (length (input (tile5)))))
 
 
--- for (blank 2)
-
---    (if (row == even) then (AND (input (testTile5)) (NOT (input (testTile7))))
-
---    else (blank 3))
 

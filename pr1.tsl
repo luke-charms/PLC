@@ -2,13 +2,13 @@
 
 
 for (blank 64) (if ((col == even) && (row == even))
-    then (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile1))) 
+    then (input (tile1))
     
     else if ((col == odd) && (row == even))
-    then(take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile2)))
+    then (input (tile2))
     
     else if ((col == even) && (row == odd))
-    then (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile2)))
+    then (input (tile2))
     
-    else (take ((col %% (length (input (tile1)))),(row %% (length (input (tile1))))) (input (tile1))))
+    else (input (tile1)))
 

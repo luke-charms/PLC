@@ -68,12 +68,13 @@ import TileTokens
     var         { TokenVar _ $$ }
 
     for         { TokenFor _ }
-    '*'         { TokenMultiply _ }
+    '/'         { TokenDir _ }
     col         { TokenCol _ }
     row         { TokenRow _ }
 
 
 %right input
+%left '/'
 %right let
 %right in
 %left Cell
@@ -82,9 +83,9 @@ import TileTokens
 %nonassoc col row odd even
 %left ','
 %nonassoc x y int true false '(' ')' '[' ']'
-%nonassoc '&&' '||' '==' '%%'
-%nonassoc '<' '>' '<=' '>='
-%left '+' '-' '*'
+%left '&&' '||' '==' '%%'
+%left '<' '>' '<=' '>='
+%left '+' '-'
 %left length take
 %left AND NOT OR
 %left reflect rotate scale subtile combine replace
@@ -109,8 +110,8 @@ Exp : x                                         { TmX }
     | Exp '>=' Exp                              { TmMoreThanEqual $1 $3 } 
     | Exp '+' Exp                               { TmAdd $1 $3 }
     | Exp '-' Exp                               { TmMinus $1 $3 }
-    | Exp '*' Exp                               { TmMultiply $1 $3 }
     | input '(' Exp ')'                         { TmInp $3 }
+    | Exp '/' Exp                               { TmDir $1 $3 }
 
     | reflect Exp Exp                           { TmReflect $2 $3 }
     | rotate Exp Exp                            { TmRotate $2 $3 }
@@ -169,7 +170,7 @@ data Expr = TmInt Int | TmX | TmY | TmTrue | TmFalse
             | TmInp Expr | TmOdd | TmEven
             | TmLessThan Expr Expr | TmMoreThan Expr Expr 
             | TmLessThanEqual Expr Expr | TmMoreThanEqual Expr Expr 
-            | TmAdd Expr Expr | TmMinus Expr Expr | TmMultiply Expr Expr
+            | TmAdd Expr Expr | TmMinus Expr Expr | TmDir Expr Expr
             | TmReflect Expr Expr 
             | TmRotate Expr Expr
             | TmScale Expr Expr
